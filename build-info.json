@@ -1,10 +1,10 @@
 {
-  "version": "20261027.1013-a610d1f",
-  "builtAt": "2026-10-27T10:13:37.810Z",
+  "version": "20261027.1030-ddc011c",
+  "builtAt": "2026-10-27T10:30:04.382Z",
   "sizes": {
-    "app.js": 208602,
-    "app.js gzip": 64341,
-    "app.css": 37575,
-    "artifact.html": 246844
+    "app.js": 220731,
+    "app.js gzip": 67992,
+    "app.css": 38031,
+    "artifact.html": 259429
   }
 }

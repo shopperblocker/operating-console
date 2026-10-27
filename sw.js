@@ -1,5 +1,5 @@
 /* Operating Console service worker. Version is stamped at build time. */
-const VERSION = '20261027.1013-a610d1f';
+const VERSION = '20261027.1030-ddc011c';
 const SHELL_CACHE = `oc-shell-${VERSION}`;
 const FONT_CACHE = 'oc-fonts-v1';
 const SHELL = ['./', './index.html', `./app.js?v=${VERSION}`, `./app.css?v=${VERSION}`, './manifest.webmanifest', './icon.svg'];
