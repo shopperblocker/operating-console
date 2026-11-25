@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Life Audit</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#3b1d4b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Life Audit">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday and private: calm, warm, unhurried
+   IDEA a pocket field notebook that grows into a research dossier
+   PICTURE the live question card and capture page, plus a seven-segment ring of what is known
+   COLOUR white or night ground, deep plum band and ink, lilac panels, coral for the one action
+   TYPE Newsreader for questions, titles and your own words; Figtree for interface
+   LAYOUT phone: band, content, bottom tabs, capture button; desktop: left rail and a reading column */
+:root{--bg:#ffffff;--ink:#1d1722;--mute:#655d6c;--brand:#3b1d4b;--bandBg:#3b1d4b;--bandInk:#f7f0fb;--bandMute:#d5c4e0;--panel:#f6f1f9;--panel2:#e9e0f0;--line:#e3dbe9;--acc:#d3432a;--accInk:#ffffff;--good:#2c6a4a;--shadow:0 10px 30px rgba(40,10,50,.14);--serif:"Newsreader",Georgia,"Times New Roman",serif;--sans:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#131016;--ink:#eee8f2;--mute:#a79eae;--brand:#dcc6ea;--bandBg:#2a1838;--bandInk:#f4ecf8;--bandMute:#bda9ca;--panel:#1d1823;--panel2:#2a2231;--line:#352c3c;--acc:#ff7a5a;--accInk:#1c0d08;--good:#88d0a8;--shadow:0 10px 30px rgba(0,0,0,.5);color-scheme:dark}}
+:root[data-theme=dark]{--bg:#131016;--ink:#eee8f2;--mute:#a79eae;--brand:#dcc6ea;--bandBg:#2a1838;--bandInk:#f4ecf8;--bandMute:#bda9ca;--panel:#1d1823;--panel2:#2a2231;--line:#352c3c;--acc:#ff7a5a;--accInk:#1c0d08;--good:#88d0a8;--shadow:0 10px 30px rgba(0,0,0,.5);color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--sans);overflow-x:clip;-webkit-font-smoothing:antialiased}
+body.locked{overflow:hidden}
+button,input,textarea{font:inherit;color:inherit}
+a{color:var(--brand)}
+#main{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px));outline:none}
+.wrap{width:100%;max-width:860px;margin-inline:auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+@media(min-width:600px){.wrap{padding-left:32px;padding-right:32px}}
+.enter{animation:enter .28s ease-out}
+@keyframes enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.enter{animation:none}}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs .brand{display:none}
+.tabs a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:58px;padding:6px 1px;color:var(--mute);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:-.01em}
+.tabs a svg{width:22px;height:22px}
+.tabs a[aria-current=page]{color:var(--brand)}
+.tabs a[aria-current=page] svg{stroke-width:2.4}
+@media(min-width:900px){.app{display:grid;grid-template-columns:232px minmax(0,1fr)}.tabs{position:sticky;top:0;align-self:start;height:100vh;display:flex;flex-direction:column;gap:2px;border-top:0;border-right:1px solid var(--line);padding:28px 14px}.tabs .brand{display:block;font:600 22px/1.1 var(--serif);padding:0 14px 22px;color:var(--brand)}.tabs a{flex-direction:row;justify-content:flex-start;gap:12px;min-height:46px;padding:0 14px;border-radius:12px;font-size:15px}.tabs a[aria-current=page]{background:var(--panel)}#main{padding-bottom:64px}.fab{bottom:32px!important;right:32px!important}#toast{bottom:40px!important}}
+.band{background:var(--bandBg);color:var(--bandInk);padding:calc(18px + env(safe-area-inset-top,0px)) 0 30px}
+.bandtop{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}
+.mark{font:600 19px/1 var(--serif);white-space:nowrap}
+@media(max-width:480px){.band .sync{display:none}}
+.title{font:500 clamp(32px,7vw,46px)/1.05 var(--serif);letter-spacing:-.02em;margin:0 0 10px;text-wrap:balance}
+.lede{color:var(--mute);margin:0 0 8px;max-width:60ch}
+.band .lede,.band .flabel,.band .sync{color:var(--bandMute)}
+.projects{display:grid;gap:12px;margin:20px 0 6px}
+@media(min-width:600px){.projects{grid-template-columns:1fr 1fr;gap:24px}}
+.projects div{border-top:1px solid color-mix(in srgb,var(--bandInk) 28%,transparent);padding-top:10px}
+.projects b{display:block;font-weight:600}
+.projects span{color:var(--bandMute);font-size:15px}
+.band input[type=text]{background:color-mix(in srgb,var(--bandInk) 10%,transparent);border-color:color-mix(in srgb,var(--bandInk) 28%,transparent);color:var(--bandInk)}
+.band input::placeholder{color:var(--bandMute)}
+.btn.onband{background:transparent;color:var(--bandInk);border-color:color-mix(in srgb,var(--bandInk) 38%,transparent)}
+.head{padding:calc(24px + env(safe-area-inset-top,0px)) 0 6px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.head .title{margin-bottom:8px}
+.head>div{flex:1 1 auto}
+.head .sync,.flowtop .sync{flex:none}
+.sync{font-size:13px;color:var(--mute);white-space:nowrap;padding-top:8px}
+.h2{font:600 22px/1.2 var(--serif);margin:32px 0 12px;letter-spacing:-.01em}
+.h3{font-weight:700;font-size:16px;margin:22px 0 8px}
+.flabel{display:block;font-size:14px;font-weight:600;color:var(--mute);margin:16px 0 6px}
+.muted{color:var(--mute)}
+.mini{font-size:13px;color:var(--mute);margin:0 0 4px}
+textarea,input[type=text],input[type=number],input[type=search]{width:100%;font-size:16px;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px 14px;line-height:1.55}
+textarea{resize:vertical;min-height:96px;display:block}
+textarea:focus,input:focus{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 20%,transparent)}
+textarea:disabled,input:disabled{opacity:.6}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.writer{min-height:38vh;font:18px/1.6 var(--serif);border-radius:18px;padding:16px 18px;background:var(--panel);border-color:transparent;resize:none}
+.writer.sm{min-height:150px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 18px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-weight:600;font-size:15px;line-height:1.2;cursor:pointer;text-decoration:none;color:var(--ink);white-space:nowrap}
+.btn:hover{border-color:var(--mute)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--accInk)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--mute)}
+.btn.ghost:hover{color:var(--ink)}
+.btn.sm{min-height:40px;padding:8px 14px;font-size:14px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn svg{width:18px;height:18px}
+.btn.mic[aria-pressed=true]{background:var(--brand);color:var(--bg);border-color:var(--brand)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+.row.end{justify-content:flex-end}
+.spacer{flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-size:15px;line-height:1.3;text-align:left;color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--brand);border-color:var(--brand);color:var(--bg)}
+.chip.sm{min-height:40px;padding:6px 13px;font-size:14px}
+.scale{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.scale .chip{text-align:center;font-weight:700;font-size:18px;padding:0;min-height:52px;border-radius:14px}
+.scalelab{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);margin-top:6px;gap:12px}
+.seg{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.flowtop{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-top:calc(12px + env(safe-area-inset-top,0px));margin-left:-14px}
+.dimname{font-size:14px;font-weight:600;color:var(--brand);margin:18px 0 0}
+.ptag{color:var(--mute);font-weight:500}
+.qtext{font:500 clamp(25px,5.6vw,34px)/1.16 var(--serif);letter-spacing:-.015em;margin:10px 0;text-wrap:balance}
+.qtext.sm{font-size:24px}
+.hint{color:var(--mute);margin:0 0 14px}
+.ans{margin-top:18px}
+.numrow{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.numrow input{max-width:220px;font-size:22px;font-weight:600}
+.numrow span{color:var(--mute)}
+.savestate{font-size:13px;color:var(--mute);min-height:20px;margin-top:8px}
+.flownav{display:grid;grid-template-columns:auto auto auto minmax(0,1fr);gap:8px;margin-top:20px;align-items:center}
+.flownav .pri{justify-self:end;min-width:120px}
+@media(max-width:480px){.flownav{grid-template-columns:repeat(3,minmax(0,1fr))}.flownav .pri{grid-column:1/-1;order:-1;justify-self:stretch}.flownav .btn{white-space:normal;padding-inline:8px}}
+.extras{display:flex;flex-wrap:wrap;gap:4px 8px;margin-top:18px;padding-top:12px;border-top:1px solid var(--line)}
+.addenda div{border-left:3px solid var(--panel2);padding:4px 0 4px 12px;margin:10px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.partial{color:var(--mute);font-style:italic;font-size:15px;margin-top:6px}
+.partial:empty{display:none}
+.dims{list-style:none;padding:0;margin:10px 0 0}
+.dimrow{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:14px;align-items:center;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:16px 0;cursor:pointer;color:var(--ink)}
+.dl{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font:600 20px/1 var(--serif);background:var(--panel);color:var(--brand)}
+.dl.pa{background:color-mix(in srgb,var(--acc) 15%,var(--bg));color:var(--acc)}
+.dimrow b{display:block;font-size:17px}
+.dimrow small{display:block;color:var(--mute);font-size:14px;line-height:1.4;margin-top:2px}
+.cnt{font-size:14px;color:var(--mute);white-space:nowrap;font-variant-numeric:tabular-nums}
+.review{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:12px 0;cursor:pointer;color:var(--ink)}
+.rq{display:block;font-weight:600}
+.ra{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;color:var(--mute);white-space:pre-wrap}
+.grid2{display:grid;gap:0 44px}
+@media(min-width:900px){.grid2{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
+.cont{background:var(--panel);border-radius:18px;padding:18px 20px}
+.qprev{font:500 22px/1.25 var(--serif);margin:6px 0 14px}
+.mapwrap{display:grid;grid-template-columns:128px minmax(0,1fr);gap:18px;align-items:center}
+.ring{width:128px;height:128px;display:block}
+.ringn{font:600 26px var(--serif);fill:var(--ink)}
+.ringl{font:500 13px var(--sans);fill:var(--mute)}
+.maplist{list-style:none;margin:0;padding:0}
+.maplist button{display:flex;justify-content:space-between;gap:10px;width:100%;background:none;border:0;border-bottom:1px solid var(--line);padding:8px 0;min-height:40px;cursor:pointer;color:var(--ink);text-align:left;font-size:15px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px}
+.outs{list-style:none;margin:0;padding:0}
+.outs li{padding:10px 0;border-top:1px solid var(--line)}
+.banner{background:var(--panel);border-radius:14px;padding:12px 16px;margin:18px 0 0;font-size:15px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.tagsug{margin-top:10px}
+.filters{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;margin-top:10px}
+.filters .chip{flex:none}
+.day{font-size:14px;font-weight:700;color:var(--mute);margin:26px 0 4px}
+.entry{border-top:1px solid var(--line);padding:14px 0 8px}
+.when{font-size:13px;color:var(--mute);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.txt{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 4px;font:17px/1.6 var(--serif)}
+.clamp{display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden}
+.ttag{font-size:13px;color:var(--brand);background:var(--panel);border-radius:999px;padding:1px 9px}
+.acts{display:flex;gap:2px;margin-left:-14px}
+details.orig{font-size:14px;color:var(--mute);margin-top:6px}
+details.orig summary{cursor:pointer;min-height:32px}
+details.orig div{white-space:pre-wrap;padding:8px 12px;border-left:3px solid var(--panel2);overflow-wrap:anywhere}
+.empty{color:var(--mute);padding:18px 0}
+.aip{background:var(--panel);border-radius:18px;padding:18px 20px;margin-top:12px}
+.aip p{margin:0 0 8px}
+.prog{font-size:14px;color:var(--mute);margin:10px 0 0}
+.summary{font:400 21px/1.45 var(--serif);margin:14px 0 6px}
+.care{border-left:3px solid var(--acc);padding:6px 0 6px 14px;margin:14px 0}
+.ins{border-top:1px solid var(--line);padding:16px 0}
+.ins h4{font-size:17px;margin:0 0 6px;font-weight:700}
+.ins p{margin:0 0 8px}
+.ins .alt{color:var(--mute);font-size:15px}
+.ins.dis h4{color:var(--mute);font-weight:500;text-decoration:line-through}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+.tag{font-size:13px;padding:3px 10px;border-radius:999px;background:var(--panel2);color:var(--mute);white-space:nowrap}
+.tag.b-fact{color:var(--good)}
+.tag.b-hypothesis{color:var(--acc)}
+.ref{display:inline-flex;align-items:center;font-size:13px;min-height:36px;padding:4px 10px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--brand);cursor:pointer;white-space:nowrap;vertical-align:middle;margin:2px 0}
+.fb{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.fb .chip{min-height:40px;padding:6px 13px;font-size:14px}
+.ins textarea{margin-top:10px;min-height:70px}
+.hist{list-style:none;padding:0;margin:0}
+.hist button{display:flex;justify-content:space-between;gap:12px;width:100%;background:none;border:0;border-top:1px solid var(--line);padding:12px 0;min-height:48px;cursor:pointer;color:var(--ink);text-align:left}
+.hist button[aria-current=true]{font-weight:700}
+.sec{border-top:1px solid var(--line);padding:18px 0}
+.sec h3{font:600 21px/1.25 var(--serif);margin:0 0 8px}
+.sec ul,.changes ul,.draft ul{padding-left:20px;margin:6px 0}
+.sec li,.changes li{margin:6px 0}
+.sec p,.draft p{margin:0 0 8px}
+.changes{background:var(--panel);border-radius:18px;padding:16px 20px;margin:14px 0}
+.note{border-left:3px solid var(--acc);padding:4px 0 4px 12px;margin:10px 0;font-size:15px;white-space:pre-wrap;overflow-wrap:anywhere}
+.optrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border-top:1px solid var(--line);padding:10px 0}
+.optmain{background:none;border:0;text-align:left;cursor:pointer;padding:4px 0;color:var(--ink);min-height:44px}
+.optmain b{display:block;font-size:17px}
+.optmain small{color:var(--mute);font-size:14px}
+.draft{background:var(--panel);border-radius:14px;padding:12px 14px;margin:8px 0 4px;font-size:15px}
+.critlist{list-style:none;padding:0;margin:0}
+.critlist li{display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding:4px 0}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table.cmp{border-collapse:collapse;width:100%;min-width:640px;font-size:15px}
+table.cmp th,table.cmp td{vertical-align:top;text-align:left;padding:10px;border-top:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere}
+table.cmp th[scope=row]{width:150px;color:var(--mute);font-weight:600;font-size:14px}
+table.cmp thead th{font:600 17px/1.2 var(--serif);border-top:0}
+@media(max-width:600px){table.cmp{min-width:0}table.cmp thead{display:none}table.cmp tr{display:block;padding:12px 0;border-top:1px solid var(--line)}table.cmp th[scope=row]{display:block;width:auto;border:0;padding:0 0 6px;font-size:15px;color:var(--ink);font-weight:700}table.cmp td{display:block;border:0;padding:4px 0 6px}table.cmp td::before{content:attr(data-l);display:block;font-size:13px;font-weight:600;color:var(--brand)}}
+.fab{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:35;width:58px;height:58px;border-radius:50%;border:0;background:var(--acc);color:var(--accInk);box-shadow:var(--shadow);display:grid;place-items:center;cursor:pointer}
+.fab svg{width:26px;height:26px}
+.fab[hidden]{display:none}
+#sheet{position:fixed;inset:0;z-index:50;background:rgba(12,6,16,.5);display:flex;align-items:flex-end;justify-content:center}
+#sheet[hidden]{display:none}
+.sheet{background:var(--bg);width:100%;max-width:680px;max-height:92vh;max-height:92dvh;overflow:auto;border-radius:22px 22px 0 0;padding:22px max(18px,env(safe-area-inset-left,0px)) calc(22px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow)}
+.sheet p{margin:0 0 12px}
+@media(min-width:700px){#sheet{align-items:center}.sheet{border-radius:22px;padding:28px}}
+.quote{white-space:pre-wrap;font:17px/1.6 var(--serif);background:var(--panel);border-radius:14px;padding:14px 16px;overflow-wrap:anywhere;margin:10px 0}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(148px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:15px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100vw - 32px);text-align:center}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+<nav class="tabs" aria-label="Sections">
+<div class="brand">Life audit</div>
+<a href="#home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+<a href="#discover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.6V14M12 17.5v.01"/></svg><span>Discover</span></a>
+<a href="#thoughts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span>Thoughts</span></a>
+<a href="#insights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg><span>Insights</span></a>
+<a href="#dossier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg><span>Dossier</span></a>
+<a href="#decide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-7M12 14L6 8M12 14l6-6M6 8V4M6 4H2M18 8V4m0 0h4"/></svg><span>Decide</span></a>
+</nav>
+<main id="main" tabindex="-1"></main>
+</div>
+<button class="fab" id="fab" data-act="capture" aria-label="Capture a thought" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+<div id="sheet" hidden></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="importfile" accept="application/json,.json" hidden>
+<script>
+{
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const now=()=>new Date().toISOString();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const nid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const str=v=>typeof v==='string'?v.trim():'';
+const clone=o=>JSON.parse(JSON.stringify(o));
+const cap=s=>s?s[0].toUpperCase()+s.slice(1):'';
+const dt=(i,o)=>{try{return i?new Date(i).toLocaleString(undefined,o):''}catch(e){return ''}};
+const fDay=i=>dt(i,{weekday:'long',month:'short',day:'numeric'});
+const fTime=i=>dt(i,{hour:'numeric',minute:'2-digit'});
+const fDate=i=>dt(i,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+const byC=(a,b)=>String(a.created||'').localeCompare(String(b.created||''));
+const MIC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+
+/* ---------- content ---------- */
+const DIMS=[
+{id:'A',name:'Academic reality',short:'Academic',proj:'A',central:'If money, grades and circumstances were different, would you genuinely want to return next semester?'},
+{id:'B',name:'Financial reality',short:'Financial',proj:'A',central:'What is your education actually costing your family and you, and is it proportionate to what you get?'},
+{id:'C',name:'Environment and lifestyle',short:'Environment',proj:'B',central:'Does your current environment bring out the best in you?'},
+{id:'D',name:'Psychological and emotional state',short:'Inner state',proj:'B',central:'Are you escaping something, pursuing something, or both?'},
+{id:'E',name:'Purpose, identity and ambition',short:'Purpose',proj:'B',central:'What kind of person do you want to become, and what life would make that worthwhile?'},
+{id:'F',name:'Family and responsibilities',short:'Family',proj:'A',central:'Where does real responsibility end and guilt begin?'},
+{id:'G',name:'The break and alternative paths',short:'Break and paths',proj:'A',central:'What would a break be for, and how would you keep it from becoming avoidance?'}];
+const ORDER=['A','B','F','G','C','D','E'];
+const Q=[];const q=(id,d,t,text,x={})=>Q.push({id,d,t,q:text,...x});
+q('a1','A','long','What are you enrolled in this semester, and what grade do you honestly expect in each course?',{hint:'Course, credits, expected grade. Rough is fine.'});
+q('a2','A','choice','Has the university issued any academic notice?',{opts:['None','Academic warning','Probation','Financial aid or SAP flag','Not sure']});
+q('a2f','A','long','What does the notice require of you, and by when?',{when:{q:'a2',in:['Academic warning','Probation','Financial aid or SAP flag']}});
+q('a3','A','choice','Can you still withdraw from a course or switch one to pass/fail this term?',{opts:['Yes','No','The deadline has passed',"I don't know"]});
+q('a4','A','choice','Does your enrollment status affect a visa or residency?',{opts:['Yes, a student visa','No','Not sure'],hint:'This decides whether a leave, a lighter load or time abroad is even available.'});
+q('a4f','A','long','What have you confirmed with the international student office about a leave, a reduced load or time outside the country?',{when:{q:'a4',in:['Yes, a student visa','Not sure']}});
+q('a5','A','long','Why did you choose this university and this major? Whose reasons were they?');
+q('a6','A','scale','How interested are you in the actual content of your major?',{lo:'Not at all',hi:'Deeply'});
+q('a7','A','choice','Which is closest to true?',{opts:['I like learning, but the system drains me',"I don't like what I'm studying","I like it, but I can't execute","I'm here mostly because it's expected",'Mixed or unclear']});
+q('a8','A','long','Describe the last time you were completely absorbed in learning something. What was it, and was it for school?');
+q('a9','A','number','Hours per week on coursework this semester, classes plus study',{unit:'hours'});
+q('a10','A','number','Hours per week on your own ventures, clients and side projects',{unit:'hours'});
+q('a11','A','long','When your grades fell, what was actually happening in those weeks?',{hint:'Sleep, money, people, work, mood. Specifics beat summaries.'});
+q('a12','A','choice','If money and GPA were not factors, would you choose to be back next semester?',{opts:['Yes','No','Not sure']});
+q('a12f','A','long','Why? First instinct, then the considered version.',{when:{q:'a12',any:1}});
+q('b1','B','number','Annual tuition and mandatory fees',{unit:'USD per year'});
+q('b2','B','number','Monthly rent and utilities',{unit:'USD per month'});
+q('b3','B','number','Monthly food, transport and everything else',{unit:'USD per month'});
+q('b4','B','long','Which scholarships, grants or aid do you have, and what conditions come attached?',{hint:'Minimum GPA, credits, full-time status, renewal dates.'});
+q('b5','B','number','Roughly what share of your total costs does your family cover?',{unit:'%'});
+q('b6','B','long','What is your family giving up or stretching to pay for this?');
+q('b7','B','number','Personal savings you can actually use',{unit:'USD'});
+q('b8','B','number','Monthly income you earn now, from any source',{unit:'USD per month'});
+q('b9','B','long','Debts and obligations: loans, the lease end date and any break clause, money owed.');
+q('b10','B','long','If you paused for a semester, which costs would stop, which would continue, and would any aid need to be repaid?',{hint:'"I don\'t know" is a useful answer here. It becomes a task.'});
+q('b11','B','scale','How proportionate does the value you receive feel to what it costs?',{lo:'Not at all',hi:'Fully'});
+q('b12','B','long','In one paragraph: what is your education costing your family and you right now, and is it worth it?');
+q('c1','C','long','Walk through a typical weekday this month, from waking to sleep.');
+q('c2','C','number','Average hours of sleep per night',{unit:'hours'});
+q('c3','C','multi','Which of these are true right now?',{opts:['I exercise regularly','I eat regular meals','I sleep at consistent times','I lose hours to my phone','I get outside most days','None of these']});
+q('c4','C','scale','How connected do you feel to the people around you?',{lo:'Isolated',hi:'Deeply connected'});
+q('c5','C','long','Who do you actually spend time with, and how do you feel afterward?');
+q('c6','C','long','What about where you live now helps you, and what drags you down?');
+q('c7','C','long','Which of your problems would follow you anywhere, and which would stay behind if you left?',{hint:'Location-dependent versus portable.'});
+q('c8','C','choice','Does this environment bring out the best in you?',{opts:['Mostly yes','Mixed','Mostly no']});
+q('c8f','C','long','Who are you becoming here? What do you like and dislike about that person?',{when:{q:'c8',any:1}});
+q('d1','D','long','When did the dissatisfaction start? A moment, or a slow slide?');
+q('d2','D','multi','Which words fit most days lately?',{opts:['Exhausted','Anxious','Lonely','Overwhelmed','Directionless','Unmotivated','Restless','Calm','Hopeful','Driven']});
+q('d3','D','scale','Energy on most days',{lo:'Empty',hi:'Full'});
+q('d4','D','choice','Have you lost interest in things that used to matter to you?',{opts:['Yes','Some','No']});
+q('d4f','D','long','Which things, and when did you notice?',{when:{q:'d4',in:['Yes','Some']}});
+q('d5','D','long','Who do you compare yourself to, and what does it do to you?');
+q('d6','D','scale','How hopeful do you feel about the next five years?',{lo:'Not hopeful',hi:'Very hopeful'});
+q('d7','D','choice','Is there someone you can talk to honestly about all this?',{opts:['Yes','Not really','No']});
+q('d8','D','choice','Would talking with a counselor or other professional be useful right now?',{opts:['Already doing it','Considering it','No','Not sure it is for me']});
+q('d9','D','long','Are you trying to escape something, pursue something, or both? Name them.',{hint:'Both can be true. Wanting change is not automatically avoidance.'});
+q('e1','E','long','At 15, what did you imagine life at 20 would look like?');
+q('e2','E','long','Describe an ordinary Tuesday at 25 that you would be proud of.');
+q('e3','E','long','Which subjects or problems could you think about for hours without being asked?');
+q('e4','E','long','Name three people you admire. What specifically do you admire in each?');
+q('e5','E','long','When do you feel most alive?');
+q('e6','E','long','What would you pursue if nobody would ever judge, praise or even know?');
+q('e7','E','long','You want the capacity to take on exceptionally hard problems. Concretely, what knowledge, skills, physical capacity and resources would that take?');
+q('e8','E','multi','When you think about finding love again, what does it include?',{opts:['A romantic relationship','Friendship','Family','Community','Belonging','Self-acceptance','Reconnecting with life','Not sure yet']});
+q('e8f','E','long','What would daily life look like if that were present?',{when:{q:'e8',any:1}});
+q('e9','E','long','What role do money and financial independence play in what you want? Be honest about the parts that are about status.');
+q('e10','E','long','What kind of person do you want to become, and what kind of life would make becoming that person worthwhile?');
+q('f1','F','long','What does your family expect regarding university? Stated, and unstated.');
+q('f2','F','choice','Have you told your family the full academic and financial picture?',{opts:['Fully','Partly','Not yet']});
+q('f2f','F','long','What have you held back, and what are you afraid will happen if you share it?',{when:{q:'f2',in:['Partly','Not yet']}});
+q('f3','F','choice','Is your return next semester assumed?',{opts:['Yes','No','Unclear']});
+q('f4','F','choice','Would your family support a temporary break?',{opts:['Likely','Unlikely','Unknown']});
+q('f5','F','long','Are there responsibilities or opportunities waiting at home?');
+q('f6','F','long','Where does real responsibility end and guilt begin for you here?');
+q('g1','G','long','If you left for two or three months, where would you go, and who would be there?');
+q('g2','G','choice','Would you live with family?',{opts:['Yes','No','Maybe']});
+q('g3','G','number','Monthly cost of living there',{unit:'USD per month'});
+q('g4','G','multi','What would the break be for?',{opts:['Work','Recovery','Independent study','Building ventures','Travel','Volunteering','Time with family','Not sure']});
+q('g5','G','long','Describe a typical day of the break, hour by hour if you can.');
+q('g6','G','long','What would need to be true at the end for the break to count as a success?');
+q('g7','G','choice','After a break, what feels most likely?',{opts:['Return to the same university','Transfer','A different path',"I don't know"]});
+q('g8','G','long','How would the break turn into avoidance, and how would you notice early?');
+const OPTIONS=[
+{id:'return',name:'Return to university',desc:'Continue next semester with a substantially different academic, financial and personal strategy.'},
+{id:'leave',name:'Formal leave of absence',desc:'Pause enrollment through official channels, relocate, work or recover, then reassess.'},
+{id:'reduce',name:'Reduce academic commitments',desc:'Fewer credits, possibly part-time work, less financial and psychological pressure.'},
+{id:'transfer',name:'Transfer universities',desc:'A different school, city or educational model.'},
+{id:'major',name:'Change majors',desc:'Stay, but study something that fits better.'},
+{id:'home',name:'Return home temporarily',desc:'Live with family for a period to cut costs and reset.'},
+{id:'work',name:'Work toward financial independence',desc:'Prioritize earning, through employment or your own ventures.'},
+{id:'alt',name:'Alternative educational or professional paths',desc:'Vocational programs, independent learning, entrepreneurship or other concrete routes.'},
+{id:'reset',name:'Winter-break reset',desc:'Make no irreversible decision now. Use the break to investigate and keep the option to return.'}];
+const FIELDS=[['fin','Financial implications'],['acad','Academic consequences'],['opp','Opportunity costs'],['long','Long-term potential'],['pers','Personal and emotional implications'],['risk','Risks and uncertainties'],['ev','Evidence that would change my view'],['next','Required next steps']];
+const STAT={exploring:'Exploring',leading:'Leading',ruled:'Ruled out'};
+const URG={now:'Needs attention now',wait:'Can wait','':'Not yet sorted'};
+const SECTIONS=[['current','Current state'],['history','Personal history and trajectory'],['roots','Root causes'],['values','Values and identity'],['ambitions','Ambitions and aspirations'],['strengths','Strengths and resources'],['constraints','Constraints'],['unresolved','Unresolved questions'],['patterns','Emerging patterns'],['directions','Potential directions']];
+const SECL=Object.fromEntries(SECTIONS);
+const KINDS=[['pattern','Recurring patterns'],['connection','Connections'],['contradiction','Contradictions and tensions'],['root_cause','Root-cause hypotheses'],['insight','Emerging insights']];
+const BASIS={fact:'Fact','self-report':'Self-reported',interpretation:'Interpretation',hypothesis:'Hypothesis'};
+const FBS=[['fits','Fits'],['nofit',"Doesn't fit"],['dismiss','Dismiss']];
+const FRAME='Context: the person is a university student doing a rigorous personal life audit to decide his direction. Preserve three distinctions: recovery versus avoidance (temporary relief is not progress); ambition versus expectation (a meaningful life versus one that merely looks successful); responsibility versus obligation (realistic responsibilities versus guilt). Keep two projects separate but connected: Project A, Stabilization (immediate academic, financial, housing and family pressures, which have deadlines) and Project B, Reorientation (identity, purpose, relationships, ambition; no deadline). A GPA is evidence about recent performance, not a measure of potential. Neither staying in university nor leaving it is presumed correct.';
+const RULES='Rules: Use only what is in the record. Never invent facts, numbers, events or people. Label the basis of every claim honestly: fact (stated as verifiable fact), self-report (his own perception), interpretation (your reading), hypothesis (a testable explanation). Offer a plausible alternative explanation where one exists. Do not pathologize ordinary uncertainty or struggle, and do not diagnose. Do not simply validate: name contradictions between stated values and actual behavior directly and respectfully. Do not recommend major life decisions. Cite record ids exactly as they appear, such as A:a3 or T:tabc123. Write plain, direct sentences. Never use em dashes.';
+
+/* ---------- state and persistence ---------- */
+const COLS=['answers','thoughts','runs','synth','options','custom','meta'];
+const S={};for(const c of COLS)S[c]={};
+const LKEY='lifeaudit.v1',DKEY='lifeaudit.draft',PKEY='lifeaudit.pending',SKEY='lifeaudit.lastsync';
+const EDITION='offline';
+const OFFLINE=EDITION==='offline';
+const MAIN_URL='https://claude.ai/artifact/TR82xZiGm15CMcVD8t284h',OFFLINE_URL='https://shopperblocker.github.io/operating-console/life-audit/';
+const U={flow:null,i:0,editT:null,delT:null,search:'',tag:null,run:null,synthV:null,opt:null,cmp:[],addOpen:false,busy:null,prog:'',aiMsg:'',aiKind:'',snoteOpen:null};
+let mode='connecting',syncState='connecting',ready=false,pending=0,base=null,sample=null,dict=null,dl=null,listening=false,dictTarget=null,sampleDeclined=false,localCache=null,wantRefresh=false,lastV=null,memDraft={text:'',tags:''};
+const timers={},chains={},dirty=new Set();
+function readLocal(){try{const j=JSON.parse(localStorage.getItem(LKEY)||'null');return j&&typeof j==='object'?j:null}catch(e){return null}}
+function saveLocal(){try{localStorage.setItem(LKEY,JSON.stringify(S))}catch(e){toast('Could not save on this device. Export your data.')}}
+function put(col,id,data,o={}){if(data===undefined)delete S[col][id];else S[col][id]=data;const k=col+'/'+id;dirty.add(k);clearTimeout(timers[k]);delete timers[k];if(o.debounce)timers[k]=setTimeout(()=>flush(col,id),o.debounce);else flush(col,id);if(!o.quiet)refresh()}
+function savePending(){try{const o={};for(const k of dirty){const i=k.indexOf('/');const c=k.slice(0,i),id=k.slice(i+1);(o[c]=o[c]||{})[id]=S[c][id]===undefined?null:S[c][id]}localStorage.setItem(PKEY,JSON.stringify(o))}catch(e){}}
+function restorePending(){try{const o=JSON.parse(localStorage.getItem(PKEY)||'null');if(!o)return;for(const c of COLS)for(const [id,v] of Object.entries(o[c]||{})){if(v===null)delete S[c][id];else S[c][id]=v;dirty.add(c+'/'+id)}}catch(e){}}
+function flush(col,id){const k=col+'/'+id;clearTimeout(timers[k]);delete timers[k];if(mode==='connecting'){savePending();return}if(mode==='local'){saveLocal();dirty.delete(k);return}pending++;status();chains[k]=(chains[k]||Promise.resolve()).then(()=>write(col,id,0)).finally(()=>{pending--;if(!timers[k])dirty.delete(k);status()})}
+async function write(col,id,attempt){const d=S[col][id];const ref=base.collection(col).doc(id);try{if(d===undefined)await ref.delete();else await ref.set(clone(d))}catch(e){const c=e&&e.code;if(c==='unavailable'&&!attempt){await sleep(700+Math.random()*900);return write(col,id,1)}if(c==='quota_exceeded')toast('Storage is full. Export, then delete old entries.');else if(c==='invalid_argument')toast('Could not save this entry: '+((e&&e.message)||'it was refused'));else if(c==='revoked'){syncState='revoked';status()}else toast('Not saved yet. Check your connection.')}}
+function flushAll(){for(const k of Object.keys(timers)){const i=k.indexOf('/');flush(k.slice(0,i),k.slice(i+1))}}
+function subscribe(){const loaded=new Set();syncState='loading';const t=setTimeout(()=>{if(loaded.size<COLS.length){syncState='unreachable';ready=true;status();refresh()}},10000);
+for(const c of COLS){base.collection(c).onSnapshot(snap=>{const o={};for(const d of snap.docs)if(d.exists)o[d.id]=d.data();for(const k of dirty){const i=k.indexOf('/');if(k.slice(0,i)!==c)continue;const id=k.slice(i+1);if(S[c][id]===undefined)delete o[id];else o[id]=S[c][id]}S[c]=o;if(!snap.metadata.fromCache){loaded.add(c);if(loaded.size===COLS.length){clearTimeout(t);if(syncState!=='revoked')syncState='ok';if(!ready){ready=true;render();return}}}status();refresh()},err=>{syncState=err&&err.code==='revoked'?'revoked':'unreachable';ready=true;status();refresh()})}}
+async function connect(){let dbx=null,usr=null;
+if(OFFLINE){try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(e){}}else{let n=0;while(!(window.claude&&window.claude.use)&&n<20){await sleep(150);n++}
+const use=name=>{try{return window.claude&&window.claude.use?Promise.resolve(window.claude.use(name)).catch(()=>null):Promise.resolve(null)}catch(e){return Promise.resolve(null)}};
+const r=await Promise.all(['db','user','sample','dictation','downloads'].map(use));dbx=r[0];usr=r[1];
+sample=r[2]||null;dl=r[4]||null;if(r[3]){dict=r[3];wireDict()}}
+restorePending();
+let uid=null;if(dbx&&usr){try{uid=await usr.id()}catch(e){uid=null}}
+if(dbx&&uid){try{base=dbx.doc('data/users/'+uid+'/vault');mode='cloud';localCache=readLocal();subscribe()}catch(e){base=null}}
+if(!base){mode='local';syncState='local';ready=true;const l=readLocal();if(l)for(const c of COLS){const merged={...(l[c]||{})};for(const k of dirty){const i=k.indexOf('/');if(k.slice(0,i)===c&&S[c][k.slice(i+1)]!==undefined)merged[k.slice(i+1)]=S[c][k.slice(i+1)]}S[c]=merged}}
+for(const k of [...dirty]){const i=k.indexOf('/');flush(k.slice(0,i),k.slice(i+1))}
+try{localStorage.removeItem(PKEY)}catch(e){}
+status();render()}
+function syncText(){if(OFFLINE)return mode==='connecting'?'Opening':'Saved on this phone';if(mode==='connecting')return 'Connecting';if(mode==='local')return 'This device only';if(syncState==='revoked')return 'Access changed';if(pending>0)return 'Saving';if(syncState==='unreachable')return 'Offline, retrying';if(syncState==='loading')return 'Loading';return 'Synced'}
+function status(){const t=syncText();for(const el of $$('.sync'))el.textContent=t}
+function getDraft(){try{const j=JSON.parse(localStorage.getItem(DKEY)||'null');if(j&&typeof j==='object')return{text:j.text||'',tags:j.tags||''}}catch(e){}return memDraft}
+function setDraft(d){memDraft=d;try{localStorage.setItem(DKEY,JSON.stringify(d))}catch(e){}}
+const parseTags=s=>[...new Set(String(s||'').split(',').map(t=>t.trim().toLowerCase()).filter(Boolean))].slice(0,8).map(t=>t.slice(0,40));
+
+/* ---------- model helpers ---------- */
+const dimById=id=>DIMS.find(d=>d.id===id);
+const isDone=a=>!!a&&(a.status==='answered'||a.status==='unknown');
+function visible(x){if(!x.when)return true;const a=S.answers[x.when.q];if(!a||a.status!=='answered')return false;const v=a.value;if(x.when.any)return Array.isArray(v)?v.length>0:(v!==''&&v!=null);return Array.isArray(v)?v.some(z=>x.when.in.includes(z)):x.when.in.includes(v)}
+function qsFor(d){const out=Q.filter(x=>x.d===d);const cus=Object.values(S.custom).filter(c=>c&&c.d===d).sort((a,b)=>byC(b,a));for(const c of cus){const it={id:c.id,d,t:'long',q:c.q,ai:1};const i=out.findIndex(o=>o.id===c.after);out.splice(i<0?out.length:i+1,0,it)}return out.filter(visible)}
+function findQ(id){const b=Q.find(x=>x.id===id);if(b)return b;const c=S.custom[id];return c?{id:c.id,d:c.d,t:'long',q:c.q,ai:1}:null}
+function stats(d){const qs=qsFor(d);let done=0;for(const x of qs)if(isDone(S.answers[x.id]))done++;return{n:qs.length,done}}
+function firstOpenIdx(d){const qs=qsFor(d);let i=qs.findIndex(x=>{const a=S.answers[x.id];return !isDone(a)&&!(a&&a.status==='skipped')});if(i<0)i=qs.findIndex(x=>!isDone(S.answers[x.id]));return i<0?qs.length:i}
+function nextOpen(){let sk=null;for(const d of ORDER){const qs=qsFor(d);for(let i=0;i<qs.length;i++){const a=S.answers[qs[i].id];if(!a||!a.status||a.status==='open')return{d,i,q:qs[i]};if(a.status==='skipped'&&!sk)sk={d,i,q:qs[i],skipped:1}}}return sk}
+function curQ(){if(!U.flow)return null;return qsFor(U.flow)[U.i]||null}
+function ansText(x,a){if(!a)return '';let v=a.value;if(x.t==='number')v=(v===''||v==null)?'':v+(x.unit?' '+x.unit:'');else if(x.t==='multi')v=Array.isArray(v)?v.join(', '):'';else if(x.t==='scale')v=v?`${v} of 5 (1 = ${x.lo}, 5 = ${x.hi})`:'';else v=v==null?'':String(v);let s=a.status==='unknown'?"I don't know yet":(a.status==='skipped'&&!v?'Skipped':v);if(a.status==='unknown'&&v)s+='. Earlier answer: '+v;if(a.note)s+=(s?'\n':'')+'Note: '+a.note;return s}
+const runsSorted=()=>Object.values(S.runs).filter(r=>r&&r.created).sort((a,b)=>byC(b,a));
+const synthSorted=()=>Object.values(S.synth).filter(r=>r&&r.created).sort((a,b)=>byC(b,a));
+const latestRun=()=>runsSorted()[0]||null,latestSynth=()=>synthSorted()[0]||null;
+function optRec(id){const o=S.options[id];return{id,urgency:'',status:'exploring',reversibility:0,...(o||{}),fields:{...((o&&o.fields)||{})}}}
+const critList=()=>((S.meta.criteria&&S.meta.criteria.items)||[]).map(c=>c.text).filter(Boolean);
+function refExists(r){const k=r[0],id=r.slice(2);return k==='A'?!!(S.answers[id]&&findQ(id)):k==='T'?!!S.thoughts[id]:false}
+function refLabel(r){const k=r[0],id=r.slice(2);if(k==='A'){const x=findQ(id);return x?dimById(x.d).short+' answer':'Answer'}const t=S.thoughts[id];return 'Thought, '+dt(t&&t.created,{month:'short',day:'numeric'})}
+const refChip=r=>typeof r==='string'&&/^[AT]:[A-Za-z0-9_-]+$/.test(r)&&refExists(r)?`<button class="ref" data-act="ref" data-ref="${esc(r)}">${esc(refLabel(r))}</button>`:'';
+function refify(h){return h.replace(/\[([AT]:[A-Za-z0-9_-]+)\]/g,(m,r)=>refChip(r))}
+function rich(t){const lines=String(t||'').split(/\n+/);let h='',ul=false;for(let l of lines){l=l.trim();if(!l)continue;const li=/^[-•*]\s+/.test(l);const body=refify(esc(l.replace(/^[-•*]\s+/,'')));if(li){if(!ul){h+='<ul>';ul=true}h+=`<li>${body}</li>`}else{if(ul){h+='</ul>';ul=false}h+=`<p>${body}</p>`}}if(ul)h+='</ul>';return h}
+function counts(){let na=0;for(const d of DIMS)for(const x of qsFor(d.id))if(isDone(S.answers[x.id]))na++;return{na,nt:Object.keys(S.thoughts).length}}
+function corpus(limit=140000){const head=[];let na=0;for(const d of DIMS){const L=[];for(const x of qsFor(d.id)){const a=S.answers[x.id];if(!isDone(a))continue;na++;let s=`[A:${x.id}] Q: ${x.q}\nA: ${ansText(x,a)}`;if(a.addenda&&a.addenda.length)s+='\n'+a.addenda.map(z=>`Added ${String(z.at).slice(0,10)}: ${z.text}`).join('\n');L.push(s)}if(L.length)head.push(`## ${d.name} (Project ${d.proj})\n\n${L.join('\n\n')}`)}
+const th=Object.values(S.thoughts).filter(Boolean).sort(byC);const parts=th.map(t=>`[T:${t.id}] ${String(t.created).slice(0,16).replace('T',' ')}${t.tags&&t.tags.length?' | tags: '+t.tags.join(', '):''}\n${t.text}`);const ans=head.join('\n\n');let omitted=0,total=ans.length+parts.reduce((s,p)=>s+p.length+2,0);while(total>limit&&parts.length){total-=parts[0].length+2;parts.shift();omitted++}
+const crit=critList();return{text:`# Guided interview\n\n${ans||'(no answers yet)'}\n\n# Thought dumps, oldest first${omitted?` (${omitted} oldest omitted for length)`:''}\n\n${parts.join('\n\n')||'(none yet)'}${crit.length?`\n\n# His decision criteria\n${crit.map(c=>'- '+c).join('\n')}`:''}`,na,nt:parts.length,omitted,count:na+th.length}}
+
+/* ---------- small UI helpers ---------- */
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2800)}
+function autosize(el){if(!el)return;el.style.height='auto';el.style.height=Math.min(el.scrollHeight+2,Math.max(window.innerHeight*.7,240))+'px'}
+const micBtn=t=>dict?`<button class="btn mic" data-act="mic" data-target="${t}" aria-pressed="${listening&&dictTarget===t}">${MIC}<span>${listening&&dictTarget===t?'Stop':'Speak'}</span></button>`:'';
+const syncEl=()=>`<span class="sync">${esc(syncText())}</span>`;
+const head=(t,l)=>`<header class="wrap head"><div><h1 class="title">${t}</h1><p class="lede">${l}</p></div>${syncEl()}</header>`;
+function topTags(){const m={};for(const t of Object.values(S.thoughts))for(const g of (t&&t.tags)||[])m[g]=(m[g]||0)+1;return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,10).map(e=>e[0])}
+function localCount(){if(!localCache)return 0;let n=0;for(const c of COLS)n+=Object.keys(localCache[c]||{}).length;return n}
+function ring(){const R=54,C=2*Math.PI*R,seg=C/7,len=seg-5;let s='',tot=0,dn=0;DIMS.forEach((d,i)=>{const st=stats(d.id);tot+=st.n;dn+=st.done;const f=st.n?st.done/st.n:0;const off=(-i*seg).toFixed(2);s+=`<circle cx="70" cy="70" r="${R}" fill="none" style="stroke:var(--panel2)" stroke-width="13" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${off}"/>`;if(f>0){const l=len*f;s+=`<circle cx="70" cy="70" r="${R}" fill="none" style="stroke:${d.proj==='A'?'var(--acc)':'var(--brand)'}" stroke-width="13" stroke-dasharray="${l.toFixed(2)} ${(C-l).toFixed(2)}" stroke-dashoffset="${off}"/>`}});const p=tot?Math.round(dn/tot*100):0;return `<svg class="ring" viewBox="0 0 140 140" role="img" aria-label="${p} percent of questions have a response"><g transform="rotate(-90 70 70)">${s}</g><text x="70" y="74" text-anchor="middle" class="ringn">${p}%</text><text x="70" y="94" text-anchor="middle" class="ringl">explored</text></svg>`}
+function lastSync(){try{return localStorage.getItem(SKEY)||''}catch(e){return ''}}
+function markSync(){try{localStorage.setItem(SKEY,now())}catch(e){}}
+function banners(){let h='';if(OFFLINE){const ls=lastSync();h+=`<div class="banner"><span><b>Offline edition.</b> Everything saves on this phone, with or without a connection. ${ls?'Last synced '+esc(fDate(ls))+'.':'Not synced with the main app yet.'}</span><button class="btn sm" data-act="syncsheet">Sync</button></div>`}else if(mode==='local')h+='<div class="banner">Entries are saving on this device only. Open this page in Claude while signed in to sync across your phone and computer.</div>';if(mode==='cloud'&&syncState==='unreachable')h+='<div class="banner">Saved entries cannot be reached yet. New entries are kept and sync when the connection returns.</div>';const lc=localCount();if(mode==='cloud'&&lc)h+=`<div class="banner"><span>${lc} entries were saved on this device before syncing was available.</span><button class="btn sm" data-act="migrate">Add them to your synced notebook</button></div>`;return h}
+
+/* ---------- views ---------- */
+const R={};
+R.home=()=>{const nx=ready?nextOpen():null;const run=latestRun();const h=new Date().getHours();const g=h<5?'Still up':h<12?'Good morning':h<18?'Good afternoon':'Good evening';const d=getDraft();const focus=(S.meta.home&&S.meta.home.focus)||'';const nowO=OPTIONS.filter(o=>optRec(o.id).urgency==='now'&&optRec(o.id).status!=='ruled');const qs=run?(run.questions||[]).slice(0,4):[];const ins=run?(run.items||[]).filter(i=>!(i.fb&&i.fb.v==='dismiss')).slice(0,3):[];
+return `<section class="band"><div class="wrap"><div class="bandtop"><span class="mark">Life audit</span><span class="row" style="margin:0">${syncEl()}<button class="btn onband sm" data-act="privacy">Data and privacy</button></span></div>
+<h1 class="title">${g}, K.</h1><p class="lede">Understand where you stand before deciding where to go.</p>
+<div class="projects"><div><b>Project A: Stabilization</b><span>Academic, financial, housing and family pressures. These have deadlines, so they get settled first.</span></div><div><b>Project B: Reorientation</b><span>Identity, purpose, relationships, ambition. No deadline. It informs A without holding it hostage.</span></div></div>
+<label class="flabel" for="focus">This week's focus</label><input id="focus" type="text" data-in="focus" maxlength="160" placeholder="One line. What matters most this week?" value="${esc(focus)}" ${ready?'':'disabled'}></div></section>
+<div class="wrap">${banners()}<div class="grid2"><section><h2 class="h2">Capture a thought</h2><textarea id="cap" class="writer sm" data-in="draft" placeholder="Anything on your mind. Fragments, contradictions and half-thoughts are welcome.">${esc(d.text)}</textarea><div id="partial-cap" class="partial"></div><div class="row">${micBtn('cap')}<span class="spacer"></span><button class="btn pri" data-act="saveDraft">Save thought</button></div><p class="mini" style="margin-top:8px">Drafts stay on this device until saved.</p></section>
+<section><h2 class="h2">Continue</h2>${!ready?'<div class="cont"><p class="muted">Opening your notebook.</p></div>':nx?`<div class="cont"><p class="dimname" style="margin:0">${esc(dimById(nx.d).name)}${nx.skipped?' · skipped earlier':''}</p><p class="qprev">${esc(nx.q.q)}</p><button class="btn pri" data-act="goq" data-d="${nx.d}" data-i="${nx.i}">Answer</button></div>`:'<div class="cont"><p class="qprev">Every question has a response.</p><p class="muted">Revisit any dimension, add thoughts or run an analysis.</p></div>'}
+<h2 class="h2">What is known so far</h2><div class="mapwrap">${ring()}<ul class="maplist">${DIMS.map(x=>{const s=stats(x.id);return `<li><button data-act="opendim" data-d="${x.id}"><span><span class="sw" style="background:${x.proj==='A'?'var(--acc)':'var(--brand)'}"></span>${esc(x.short)}</span><span class="cnt">${s.done}/${s.n}</span></button></li>`}).join('')}</ul></div><p class="mini" style="margin-top:8px">Coral marks Project A dimensions, plum marks Project B.</p></section></div>
+${nowO.length||qs.length?`<h2 class="h2">Outstanding</h2><ul class="outs">${nowO.map(o=>`<li><b>Needs attention now:</b> <button class="btn ghost sm" data-act="openopt" data-id="${o.id}">${esc(o.name)}</button></li>`).join('')}${qs.map(x=>`<li>${esc(x)} <button class="btn ghost sm" data-act="qthought" data-q="${esc(x)}">Write about it</button></li>`).join('')}</ul>`:''}
+${ins.length?`<h2 class="h2">Recent insights</h2>${ins.map(i=>`<div class="ins"><h4>${esc(i.title)}</h4><div class="meta"><span class="tag b-${esc(i.basis)}">${esc(BASIS[i.basis]||'')}</span><span class="tag">${esc(cap(i.confidence))} confidence</span></div></div>`).join('')}<a class="btn sm" href="#insights">All insights</a>`:''}</div>`};
+R.discover=()=>{if(U.flow&&dimById(U.flow))return vFlow();return head('Discover','Seven dimensions, in any order. Short answers count, and so does "I don\'t know yet".')+`<div class="wrap"><ol class="dims">${DIMS.map(d=>{const s=stats(d.id);return `<li><button class="dimrow" data-act="opendim" data-d="${d.id}"><span class="dl${d.proj==='A'?' pa':''}">${d.id}</span><span><b>${esc(d.name)}</b><small>Project ${d.proj}. ${esc(d.central)}</small></span><span class="cnt">${s.done}/${s.n}</span></button></li>`}).join('')}</ol></div>`};
+function vFlow(){const d=dimById(U.flow);if(!ready)return `<div class="wrap"><div class="flowtop"><button class="btn ghost sm" data-act="dims">‹ Dimensions</button></div><p class="empty">Opening your answers.</p></div>`;const qs=qsFor(d.id);if(U.i<0)U.i=0;if(U.i>=qs.length)return vEnd(d,qs);const x=qs[U.i];const a=S.answers[x.id];
+let inp='';if(x.t==='long'||x.t==='text')inp=`<textarea id="qa" data-in="ans" rows="${x.t==='long'?6:3}" placeholder="Type or speak. Short is fine.">${esc(typeof (a&&a.value)==='string'?a.value:'')}</textarea><div id="partial-qa" class="partial"></div>${dict?`<div class="row">${micBtn('qa')}</div>`:''}`;
+else if(x.t==='number')inp=`<div class="numrow"><input id="qa" type="number" inputmode="decimal" step="any" data-in="ans" value="${a&&a.value!==''&&a.value!=null?esc(a.value):''}" aria-label="${esc(x.q)}"><span>${esc(x.unit||'')}</span></div><textarea id="qn" data-in="note" rows="2" placeholder="Context, optional. Estimates are fine.">${esc((a&&a.note)||'')}</textarea>`;
+else{const val=a?a.value:undefined;const on=o=>Array.isArray(val)?val.includes(o):val===o;if(x.t==='scale')inp=`<div class="scale">${[1,2,3,4,5].map(n=>`<button class="chip" data-act="pick" data-v="${n}" aria-pressed="${on(n)}">${n}</button>`).join('')}</div><div class="scalelab"><span>1 · ${esc(x.lo)}</span><span>5 · ${esc(x.hi)}</span></div>`;else inp=`<div class="chips">${x.opts.map(o=>`<button class="chip" data-act="pick" data-v="${esc(o)}" aria-pressed="${on(o)}">${esc(o)}</button>`).join('')}</div>${x.t==='multi'?'<p class="mini" style="margin-top:8px">Pick any that apply.</p>':''}`;inp+=`<textarea id="qn" data-in="note" rows="2" placeholder="Add context, optional." style="margin-top:14px">${esc((a&&a.note)||'')}</textarea>`}
+const last=U.i===qs.length-1;
+return `<div class="wrap"><div class="flowtop"><button class="btn ghost sm" data-act="dims">‹ Dimensions</button><span class="row" style="margin:0"><span class="mini" style="margin:0">${U.i+1} of ${qs.length}</span><button class="btn ghost sm" data-act="review">Review</button></span></div>
+<p class="dimname">${esc(d.name)} <span class="ptag">· Project ${d.proj}</span></p><h1 class="qtext">${esc(x.q)}</h1>${x.hint?`<p class="hint">${esc(x.hint)}</p>`:''}${x.ai?'<p class="hint">A follow-up suggested from your earlier answers.</p>':''}
+<div class="ans">${inp}</div><div class="savestate" id="qsave">${esc(saveTxt(a))}</div>
+${a&&a.addenda&&a.addenda.length?`<div class="addenda"><p class="mini">Added later</p>${a.addenda.map(z=>`<div><span class="mini">${esc(fDate(z.at))}</span>\n${esc(z.text)}</div>`).join('')}</div>`:''}
+${U.addOpen?`<label class="flabel" for="addtxt">Add to this answer. The original stays as it is.</label><textarea id="addtxt" rows="3"></textarea><div class="row"><button class="btn pri sm" data-act="saveadd">Save addition</button><button class="btn ghost sm" data-act="addmore">Cancel</button></div>`:''}
+<div class="flownav"><button class="btn ghost" data-act="prev" ${U.i===0?'disabled':''}>Back</button><button class="btn" data-act="unknown">Don't know yet</button><button class="btn ghost" data-act="skip">Skip</button><button class="btn pri" data-act="next">${last?'Finish':'Next'}</button></div>
+<div class="extras">${isDone(a)&&!U.addOpen?'<button class="btn ghost sm" data-act="addmore">Add to this answer</button>':''}${isDone(a)?`<button class="btn ghost sm" data-act="followup" ${!sample||U.busy?'disabled':''}>${U.busy&&U.busy.kind==='follow'?'Thinking of a follow-up':'Suggest a follow-up'}</button>`:''}${x.ai?`<button class="btn ghost sm" data-act="rmcustom" data-id="${esc(x.id)}">Remove this follow-up</button>`:''}</div></div>`}
+function saveTxt(a){if(!a)return '';if(a.status==='unknown')return "Marked as don't know yet.";if(a.status==='skipped')return 'Skipped for now.';if(a.status==='answered')return 'Answered '+fDate(a.updated)+'. Changes save as you type.';return ''}
+function vEnd(d,qs){const nd=DIMS[(DIMS.indexOf(d)+1)%DIMS.length];return `<div class="wrap"><div class="flowtop"><button class="btn ghost sm" data-act="dims">‹ Dimensions</button></div><p class="dimname">${esc(d.name)}</p><h1 class="qtext">That is everything here for now.</h1><p class="hint">The question underneath this dimension: ${esc(d.central)}</p>
+<div class="row"><button class="btn pri" data-act="nextdim" data-d="${nd.id}">Next: ${esc(nd.short)}</button><a class="btn" href="#insights">Analyze</a></div>
+<h2 class="h2">Your answers</h2>${qs.map((x,i)=>{const a=S.answers[x.id];const t=a?ansText(x,a):'';return `<button class="review" data-act="jump" data-i="${i}"><span class="rq">${esc(x.q)}</span><span class="ra">${esc(t||'No answer yet')}</span></button>`}).join('')}</div>`}
+R.thoughts=()=>{const d=getDraft();const tags=topTags();return head('Thoughts','Unload anything. No categories required. Your words are kept exactly as written.')+`<div class="wrap"><textarea id="tw" class="writer" data-in="draft" placeholder="What's on your mind?">${esc(d.text)}</textarea><div id="partial-tw" class="partial"></div>
+<input id="tt" type="text" data-in="drafttags" placeholder="Tags, optional, separated by commas" value="${esc(d.tags)}" style="margin-top:10px">
+${tags.length?`<div class="chips tagsug">${tags.map(t=>`<button class="chip sm" data-act="addtag" data-t="${esc(t)}">+ ${esc(t)}</button>`).join('')}</div>`:''}
+<div class="row">${micBtn('tw')}<span class="spacer"></span><button class="btn pri" data-act="saveDraft">Save thought</button></div>
+<h2 class="h2">Journal</h2><input id="ts" type="search" data-in="search" placeholder="Search thoughts" value="${esc(U.search)}" aria-label="Search thoughts">
+${tags.length?`<div class="filters">${tags.map(t=>`<button class="chip sm" data-act="tagf" data-t="${esc(t)}" aria-pressed="${U.tag===t}">${esc(t)}</button>`).join('')}</div>`:''}<div id="tlist">${tlistHTML()}</div></div>`};
+function tlistHTML(){const qq=U.search.trim().toLowerCase();let arr=Object.values(S.thoughts).filter(Boolean).sort((a,b)=>byC(b,a));if(U.tag)arr=arr.filter(t=>(t.tags||[]).includes(U.tag));if(qq)arr=arr.filter(t=>(String(t.text)+' '+(t.tags||[]).join(' ')).toLowerCase().includes(qq));if(!arr.length)return `<p class="empty">${Object.keys(S.thoughts).length?'No thoughts match.':(ready?'No thoughts yet. The first one can be a single sentence.':'Opening your journal.')}</p>`;let h='',day='';for(const t of arr){const dd=fDay(t.created);if(dd!==day){h+=`<h3 class="day">${esc(dd)}</h3>`;day=dd}h+=entryHTML(t)}return h}
+function entryHTML(t){const ed=U.editT===t.id;const tx=String(t.text||'');const long=tx.length>420||tx.split('\n').length>7;const id=esc(t.id);return `<article class="entry"><div class="when"><span>${esc(fTime(t.created))}</span>${(t.tags||[]).map(x=>`<span class="ttag">${esc(x)}</span>`).join('')}${t.original?'<span>· edited</span>':''}</div>
+${ed?`<textarea id="te" rows="8" aria-label="Edit thought">${esc(tx)}</textarea><input id="teg" type="text" placeholder="Tags, separated by commas" value="${esc((t.tags||[]).join(', '))}" style="margin-top:8px"><div class="row"><button class="btn pri sm" data-act="saveT" data-id="${id}">Save changes</button><button class="btn ghost sm" data-act="cancelT">Cancel</button></div>`:`<div class="txt${long?' clamp':''}">${esc(tx)}</div>${long?'<button class="btn ghost sm" data-act="more" style="margin-left:-14px">Show all</button>':''}`}
+${t.original&&!ed?`<details class="orig"><summary>Original version</summary><div>${esc(t.original)}</div></details>`:''}
+${ed?'':U.delT===t.id?`<div class="row"><span>Delete this thought permanently?</span><button class="btn sm" data-act="delYes" data-id="${id}">Delete</button><button class="btn ghost sm" data-act="delNo">Keep</button></div>`:`<div class="acts"><button class="btn ghost sm" data-act="editT" data-id="${id}">Edit</button><button class="btn ghost sm" data-act="delT" data-id="${id}">Delete</button></div>`}</article>`}
+function renderTList(){const el=$('#tlist');if(el)el.innerHTML=tlistHTML()}
+function aiUnavail(){return OFFLINE?'Analysis needs Claude and a connection. After you land, sync to the main app and run it there.':mode==='connecting'?'Connecting.':sampleDeclined?'AI access was declined for this page. Writing, review and export still work.':'AI features work when this page is opened in Claude while signed in.'}
+function aiPanel(kind,label,act,desc){const busy=U.busy&&U.busy.kind===kind;const other=U.busy&&!busy;return `<div class="aip"><p>${esc(desc)}</p>${sample?'':`<p class="muted">${esc(aiUnavail())}</p>`}<div class="row" style="margin-top:4px">${busy?'<button class="btn" data-act="cancelAI">Stop</button>':`<button class="btn pri" data-act="${act}" ${!sample||other?'disabled':''}>${esc(label)}</button>`}</div>${busy?`<p class="prog" id="prog">${esc(U.prog||'Starting')}</p>`:(U.aiMsg&&U.aiKind===kind?`<p class="prog">${esc(U.aiMsg)}</p>`:'')}</div>`}
+R.insights=()=>{const runs=runsSorted();const r=(U.run&&S.runs[U.run])||runs[0];const c=counts();return head('Insights','Patterns, connections and tensions across everything you have written. Hypotheses to test, not verdicts.')+`<div class="wrap">${aiPanel('analysis',runs.length?'Run a new analysis':'Run analysis','analyze',`Reads ${c.na} answers and ${c.nt} thoughts. Takes a minute or two.`)}
+${r?runHTML(r,runs):'<p class="empty">No analysis yet. It works best after a handful of answers and thoughts, but you can run it any time.</p>'}
+${runs.length>1?`<h2 class="h2">All analyses</h2><ul class="hist">${runs.map(x=>`<li><button data-act="viewrun" data-id="${esc(x.id)}" aria-current="${x===r}"><span>${esc(fDate(x.created))}</span><span class="muted">${(x.items||[]).length} items</span></button></li>`).join('')}</ul>`:''}</div>`};
+function runHTML(r,runs){const latest=runs[0]&&runs[0].id===r.id;const cv=r.coverage||{};return `<p class="mini" style="margin-top:24px">${latest?'Latest analysis':'Earlier analysis'} · ${esc(fDate(r.created))} · ${cv.answers||0} answers, ${cv.thoughts||0} thoughts${cv.omitted?`, ${cv.omitted} oldest thoughts left out for length`:''}</p>
+${r.care?`<p class="care">${esc(r.care)}</p>`:''}<p class="summary">${esc(r.summary)}</p>
+${KINDS.map(([k,l])=>{const its=(r.items||[]).map((it,i)=>[it,i]).filter(p=>p[0].kind===k);return its.length?`<h2 class="h2">${l}</h2>${its.map(p=>itemHTML(r,p[0],p[1])).join('')}`:''}).join('')}
+${(r.questions||[]).length?`<h2 class="h2">Questions worth investigating</h2><ul class="outs">${r.questions.map(x=>`<li>${esc(x)} <button class="btn ghost sm" data-act="qthought" data-q="${esc(x)}">Write about it</button></li>`).join('')}</ul>`:''}`}
+function itemHTML(r,it,i){const fb=it.fb||{};const dis=fb.v==='dismiss';const rid=esc(r.id);return `<article class="ins${dis?' dis':''}"><h4>${esc(it.title)}</h4>${dis?'':`<p>${esc(it.detail)}</p>${it.alternative?`<p class="alt"><b>Alternative explanation.</b> ${esc(it.alternative)}</p>`:''}<div class="meta"><span class="tag b-${esc(it.basis)}">${esc(BASIS[it.basis]||'')}</span><span class="tag">${esc(cap(it.confidence))} confidence</span>${(it.refs||[]).map(refChip).join('')}</div>`}
+<div class="fb">${FBS.map(([v,l])=>`<button class="chip" data-act="fb" data-run="${rid}" data-i="${i}" data-v="${v}" aria-pressed="${fb.v===v}">${dis&&v==='dismiss'?'Restore':l}</button>`).join('')}</div>
+${!dis&&(fb.v==='nofit'||fb.note)?`<textarea data-in="fbnote" data-run="${rid}" data-i="${i}" rows="2" aria-label="Correction" placeholder="What is wrong with it? Your correction shapes the next analysis.">${esc(fb.note||'')}</textarea>`:''}</article>`}
+R.dossier=()=>{const vs=synthSorted();const cur=(U.synthV&&S.synth[U.synthV])||vs[0];const latest=cur&&vs[0]&&cur.id===vs[0].id;const notes=(S.meta.synthNotes&&S.meta.synthNotes.notes)||{};const pend=Object.values(notes).flat().filter(n=>!vs[0]||n.at>vs[0].created).length;const c=counts();
+return head('Dossier','Your evolving synthesis. Every version is kept, and every change says what prompted it.')+`<div class="wrap">${aiPanel('synth',vs.length?'Update synthesis':'Write the first synthesis','synth',`Uses ${c.na} answers and ${c.nt} thoughts${pend?`, plus ${pend} correction${pend>1?'s':''} of yours`:''}.`)}
+${cur?`${latest?'':`<div class="banner"><span>Viewing version ${cur.n} from ${esc(fDate(cur.created))}.</span><button class="btn sm" data-act="viewsyn" data-id="">Back to latest</button></div>`}<p class="mini" style="margin-top:24px">Version ${cur.n} · ${esc(fDate(cur.created))}</p>
+${(cur.changes||[]).length?`<div class="changes"><h3 class="h3" style="margin-top:0">${cur.n>1?`What changed since version ${cur.n-1}`:'First draft'}</h3><ul>${cur.changes.map(ch=>`<li><b>${esc(SECL[ch.section]||ch.section)}.</b> ${esc(ch.what)}${ch.why?` <span class="muted">${esc(ch.why)}</span>`:''} ${(ch.refs||[]).map(refChip).join('')}</li>`).join('')}</ul></div>`:''}
+${SECTIONS.map(([k,l])=>`<section class="sec"><h3>${l}</h3>${rich(cur.sections&&cur.sections[k])||'<p class="muted">Empty.</p>'}${(notes[k]||[]).map(n=>`<div class="note"><span class="mini">Your note · ${esc(fDate(n.at))}</span>\n${esc(n.text)}</div>`).join('')}${latest?(U.snoteOpen===k?`<textarea id="sn" rows="3" aria-label="Your note" placeholder="Correct, dispute or add. The next update has to account for it."></textarea><div class="row"><button class="btn pri sm" data-act="savenote" data-s="${k}">Save note</button><button class="btn ghost sm" data-act="snote" data-s="">Cancel</button></div>`:`<button class="btn ghost sm" data-act="snote" data-s="${k}" style="margin-left:-14px">Correct or add</button>`):''}</section>`).join('')}`:'<p class="empty">No synthesis yet. Once there is some material, the first version organizes it into ten sections: current state, history, root causes, values, ambitions, strengths, constraints, open questions, patterns and possible directions.</p>'}
+${vs.length>1?`<h2 class="h2">All versions</h2><ul class="hist">${vs.map(v=>`<li><button data-act="viewsyn" data-id="${esc(v.id)}" aria-current="${v===cur}"><span>Version ${v.n}</span><span class="muted">${esc(fDate(v.created))} · ${(v.changes||[]).length} changes</span></button></li>`).join('')}</ul>`:''}</div>`};
+R.decide=()=>{if(U.opt&&OPTIONS.some(o=>o.id===U.opt))return vOpt();const crit=(S.meta.criteria&&S.meta.criteria.items)||[];const live=OPTIONS.filter(o=>optRec(o.id).status!=='ruled'),ruled=OPTIONS.filter(o=>optRec(o.id).status==='ruled');
+return head('Decide','Paths side by side. Separate what needs a decision now from what can wait for more evidence.')+`<div class="wrap"><h2 class="h2">Decision criteria</h2><p class="muted" style="margin-top:-4px">What any path must satisfy. Written once, applied to every option.</p>
+<ul class="critlist">${crit.map(c=>`<li><span>${esc(c.text)}</span><button class="btn ghost sm" data-act="delcrit" data-id="${esc(c.id)}">Remove</button></li>`).join('')}</ul>
+<div class="row"><input id="critnew" type="text" maxlength="200" placeholder="For example: keeps the option to finish a degree" aria-label="New criterion" style="flex:1 1 220px"><button class="btn sm" data-act="addcrit" ${ready?'':'disabled'}>Add</button></div>
+${[['now'],[''],['wait']].map(([u])=>{const os=live.filter(o=>(optRec(o.id).urgency||'')===u);return os.length?`<h2 class="h2">${URG[u]}</h2>${os.map(optRow).join('')}`:''}).join('')}
+${ruled.length?`<h2 class="h2">Ruled out</h2>${ruled.map(optRow).join('')}`:''}<div id="cmp">${cmpHTML()}</div></div>`};
+function optRow(o){const r=optRec(o.id);const n=FIELDS.filter(([k])=>str(r.fields[k])).length;const on=U.cmp.includes(o.id);return `<div class="optrow"><button class="optmain" data-act="openopt" data-id="${o.id}"><b>${esc(o.name)}</b><small>${STAT[r.status]||'Exploring'} · ${r.reversibility?`reversibility ${r.reversibility} of 5`:'reversibility not rated'} · ${n} of ${FIELDS.length} assessed</small></button><button class="chip sm" data-act="cmp" data-id="${o.id}" aria-pressed="${on}">${on?'Comparing':'Compare'}</button></div>`}
+function cmpHTML(){if(!U.cmp.length)return '';if(U.cmp.length<2)return '<p class="muted" style="margin-top:16px">Pick one or two more paths to compare side by side.</p>';const os=U.cmp.map(id=>OPTIONS.find(o=>o.id===id)).filter(Boolean);const rs=os.map(o=>optRec(o.id));const row=(l,f)=>`<tr><th scope="row">${l}</th>${rs.map((r,i)=>`<td data-l="${esc(os[i].name)}">${esc(f(r))}</td>`).join('')}</tr>`;
+return `<h2 class="h2">Side by side</h2><div class="scroll"><table class="cmp"><thead><tr><th></th>${os.map(o=>`<th scope="col">${esc(o.name)}</th>`).join('')}</tr></thead><tbody>${row('Status',r=>STAT[r.status]||'Exploring')}${row('Timing',r=>URG[r.urgency||''])}${row('Reversibility',r=>r.reversibility?r.reversibility+' of 5':'Not rated')}${FIELDS.map(([k,l])=>row(l,r=>str(r.fields[k])||'Not assessed yet')).join('')}</tbody></table></div><div class="row"><button class="btn ghost sm" data-act="cmpclear">Clear comparison</button></div>`}
+function vOpt(){const b=OPTIONS.find(o=>o.id===U.opt);const o=optRec(U.opt);const busy=U.busy&&U.busy.kind==='opt';const dis=ready?'':'disabled';
+return `<div class="wrap"><div class="flowtop"><button class="btn ghost sm" data-act="optback">‹ All paths</button>${syncEl()}</div><h1 class="title" style="margin-top:14px">${esc(b.name)}</h1><p class="lede">${esc(b.desc)}</p>
+<p class="flabel">Timing</p><div class="seg">${[['now','Needs attention now'],['wait','Can wait'],['','Not sorted']].map(([v,l])=>`<button class="chip sm" data-act="urg" data-v="${v}" aria-pressed="${(o.urgency||'')===v}" ${dis}>${l}</button>`).join('')}</div>
+<p class="flabel">Status</p><div class="seg">${Object.entries(STAT).map(([v,l])=>`<button class="chip sm" data-act="ostat" data-v="${v}" aria-pressed="${o.status===v}" ${dis}>${l}</button>`).join('')}</div>
+<p class="flabel">Reversibility</p><div class="scale">${[1,2,3,4,5].map(n=>`<button class="chip" data-act="rev" data-v="${n}" aria-pressed="${o.reversibility===n}" ${dis}>${n}</button>`).join('')}</div><div class="scalelab"><span>1 · Hard to undo</span><span>5 · Fully reversible</span></div>
+<div class="aip" style="margin-top:22px"><p>Claude can draft each field from your record, with sources and explicit unknowns. Drafts appear beside your own text; nothing is overwritten.</p>${sample?'':`<p class="muted">${esc(aiUnavail())}</p>`}<div class="row" style="margin-top:4px">${busy?'<button class="btn" data-act="cancelAI">Stop</button>':`<button class="btn" data-act="aiopt" ${!sample||U.busy||!ready?'disabled':''}>${o.ai?'Redraft from my record':'Draft from my record'}</button>`}</div>${busy?`<p class="prog" id="prog">${esc(U.prog||'Starting')}</p>`:(U.aiMsg&&U.aiKind==='opt'?`<p class="prog">${esc(U.aiMsg)}</p>`:'')}</div>
+${FIELDS.map(([k,l])=>`<label class="flabel" for="f-${k}">${l}</label><textarea id="f-${k}" data-in="optf" data-f="${k}" rows="3" ${dis}>${esc(o.fields[k]||'')}</textarea>${o.ai&&o.ai.fields&&str(o.ai.fields[k])?`<div class="draft"><p class="mini">Claude's draft from your record · ${esc(fDate(o.ai.at))}</p>${rich(o.ai.fields[k])}<button class="btn sm" data-act="usedraft" data-f="${k}" ${dis}>Use this draft</button></div>`:''}`).join('')}
+${o.ai&&(o.ai.unknowns||[]).length?`<h2 class="h2">Open facts for this path</h2><ul class="outs">${o.ai.unknowns.map(u=>`<li>${esc(u)}</li>`).join('')}</ul>`:''}</div>`}
+
+/* ---------- render ---------- */
+const VIEWS=['home','discover','thoughts','insights','dossier','decide'];
+const view=()=>{const h=location.hash.slice(1);return VIEWS.includes(h)?h:'home'};
+function render(){wantRefresh=false;const v=view();const m=$('#main');const same=v===lastV;const y=window.scrollY;for(const a of $$('nav.tabs a')){if(a.getAttribute('href')==='#'+v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')}m.innerHTML=R[v]();m.classList.remove('enter');if(!same){void m.offsetWidth;m.classList.add('enter')}lastV=v;$('#fab').hidden=v==='home'||v==='thoughts';for(const t of $$('textarea.writer',m))autosize(t);if(same)window.scrollTo(0,y)}
+function refresh(){const a=document.activeElement;if(a&&/^(TEXTAREA|INPUT)$/.test(a.tagName)&&a.closest('#main')){wantRefresh=true;return}render()}
+document.addEventListener('focusout',()=>{if(!wantRefresh)return;setTimeout(()=>{const a=document.activeElement;if(a&&/^(TEXTAREA|INPUT)$/.test(a.tagName)&&a.closest('#main'))return;if(wantRefresh)render()},320)});
+const top=()=>window.scrollTo(0,0);
+function go(v){if(view()===v){render();top()}else location.hash=v}
+
+/* ---------- sheet ---------- */
+const sheetEl=$('#sheet');
+function openSheet(h){sheetEl.innerHTML=`<div class="sheet" role="dialog" aria-modal="true">${h}</div>`;sheetEl.hidden=false;document.body.classList.add('locked')}
+function closeSheet(){if(listening&&dictTarget==='sw'&&dict)dict.stop().catch(()=>{});sheetEl.hidden=true;sheetEl.innerHTML='';document.body.classList.remove('locked')}
+function openCapture(){const d=getDraft();openSheet(`<h2 class="h2" style="margin-top:0">Capture a thought</h2><textarea id="sw" class="writer sm" data-in="draft" placeholder="Anything. Fragments are fine.">${esc(d.text)}</textarea><div id="partial-sw" class="partial"></div><input id="swtags" type="text" data-in="drafttags" placeholder="Tags, optional, separated by commas" value="${esc(d.tags)}" style="margin-top:10px"><div class="row">${micBtn('sw')}<span class="spacer"></span><button class="btn ghost" data-act="closesheet">Close</button><button class="btn pri" data-act="saveDraft" data-close="1">Save thought</button></div>`);const t=$('#sw');autosize(t);setTimeout(()=>{t.focus();t.setSelectionRange(t.value.length,t.value.length)},60)}
+function openPrivacy(){const cloud=mode==='cloud';openSheet(`<h2 class="h2" style="margin-top:0">Data and privacy</h2>
+<p><b>Where entries live.</b> ${OFFLINE?"On this phone only, in this app's own storage. The app's code is public, but your entries never leave the phone unless you copy or export them. Deleting the home screen app or clearing Safari website data erases them, so sync regularly.":cloud?"In this page's private database, inside a per-person area tied to your Claude account. It syncs across your devices. If you ever share the page, other people get their own empty notebook and cannot read yours. Avoid adding Editors to this page: an Editor can publish new code for it.":"On this device only, in this browser's storage. Open the page in Claude while signed in to sync across devices; you can then move these entries over."}</p>
+<p><b>AI analysis.</b> Runs only when you tap an analysis, synthesis, draft or follow-up button. The relevant entries are sent to Claude for that one request. Nothing runs in the background, and no other service receives anything.</p>
+<p><b>Drafts.</b> An unsaved thought stays in this browser until you save it.</p>
+<h3 class="h3">${OFFLINE?'Sync with the main app':'Offline use'}</h3><p class="muted">${OFFLINE?'Move entries between this phone and the main app with copy and paste.':'For flights and dead zones there is an offline edition that saves on your phone and syncs back here.'}</p><div class="row"><button class="btn" data-act="syncsheet">${OFFLINE?'Sync':'Set up offline use'}</button></div>
+<h3 class="h3">Export and import</h3><p class="muted">Everything, in portable formats. Import adds entries from a JSON export and keeps what is already here.</p><div class="row"><button class="btn" data-act="exportmd">Export Markdown</button><button class="btn" data-act="exportjson">Export JSON</button><button class="btn ghost" data-act="importjson" ${ready?'':'disabled'}>Import JSON</button></div>
+<h3 class="h3">Support</h3><p class="muted">This is a thinking tool, not care. If things feel unmanageable or unsafe, call or text 988 in the US, or contact your campus counseling center.</p>
+<div class="row end"><button class="btn pri" data-act="closesheet">Done</button></div>`)}
+function openRef(r){const k=r[0],id=r.slice(2);if(k==='A'){const x=findQ(id),a=S.answers[id];if(!x||!a)return;openSheet(`<p class="dimname" style="margin-top:0">${esc(dimById(x.d).name)}</p><h2 class="qtext sm">${esc(x.q)}</h2><div class="quote">${esc(ansText(x,a))}</div>${(a.addenda||[]).map(z=>`<div class="note"><span class="mini">Added ${esc(fDate(z.at))}</span>\n${esc(z.text)}</div>`).join('')}<div class="row end"><button class="btn ghost" data-act="closesheet">Close</button><button class="btn" data-act="openq" data-q="${esc(id)}">Open question</button></div>`)}else{const t=S.thoughts[id];if(!t)return;openSheet(`<p class="dimname" style="margin-top:0">Thought · ${esc(fDate(t.created))}</p><div class="quote">${esc(t.text)}</div><div class="row end"><button class="btn ghost" data-act="closesheet">Close</button><a class="btn" href="#thoughts" data-act="closesheet">Open journal</a></div>`)}}
+function copySheet(name,text){openSheet(`<h2 class="h2" style="margin-top:0">${esc(name)}</h2><p class="muted">Saving files is unavailable here. Copy the text instead.</p><textarea id="cpy" rows="10" readonly>${esc(text)}</textarea><div class="row end"><button class="btn ghost" data-act="closesheet">Close</button><button class="btn pri" data-act="copy">Copy</button></div>`)}
+
+/* ---------- actions ---------- */
+function saveDraft(el){const d=getDraft();if(!str(d.text)){toast('Nothing to save yet.');return}const id=nid('t');put('thoughts',id,{id,text:d.text.replace(/\s+$/,''),tags:parseTags(d.tags),created:now(),updated:now()},{quiet:true});setDraft({text:'',tags:''});if(listening&&dict)dict.stop().catch(()=>{});if(el&&el.dataset.close)closeSheet();toast('Saved');render()}
+function setAnswer(qid,patch,deb=0){const x=findQ(qid);if(!x)return;const old=S.answers[qid]||{qid,d:x.d,created:now(),addenda:[]};const a={...old,...patch,updated:now()};put('answers',qid,a,{debounce:deb,quiet:true});const s=$('#qsave');if(s)s.textContent=saveTxt(a)}
+function pick(el){const x=curQ();if(!x)return;const v=x.t==='scale'?Number(el.dataset.v):el.dataset.v;const a=S.answers[x.id];let val;if(x.t==='multi'){const cur=Array.isArray(a&&a.value)?[...a.value]:[];const k=cur.indexOf(v);if(k>=0)cur.splice(k,1);else cur.push(v);val=cur}else val=a&&a.value===v?'':v;const empty=Array.isArray(val)?!val.length:(val===''||val==null);setAnswer(x.id,{value:val,status:empty?(a&&a.status==='unknown'?'unknown':'open'):'answered'});render()}
+function setFb(runId,i,v){const r=S.runs[runId];if(!r||!r.items||!r.items[i])return;const n=clone(r);const it=n.items[i];const f=it.fb||{};it.fb=f.v===v?{...f,v:null}:{...f,v,at:now()};n.updated=now();put('runs',runId,n)}
+function setOpt(id,patch,o={}){put('options',id,{...optRec(id),...patch,updated:now()},o)}
+function feedbackText(){const L=[];for(const r of runsSorted().slice(0,6))for(const it of r.items||[]){const f=it.fb;if(!f||(!f.v&&!f.note))continue;L.push(`- ${f.v==='fits'?'Fits':f.v==='nofit'?'Does not fit':f.v==='dismiss'?'Dismissed':'Comment'}: "${it.title}"${f.note?'. His correction: '+f.note:''}`)}return L.slice(0,40).join('\n')}
+function notesText(){const n=(S.meta.synthNotes&&S.meta.synthNotes.notes)||{};const L=[];for(const [k,arr] of Object.entries(n))for(const x of arr||[])L.push(`- ${SECL[k]||k} (${String(x.at).slice(0,10)}): ${x.text}`);return L.join('\n')}
+function parseJ(t){if(typeof t!=='string')return null;const s=t.indexOf('{'),e=t.lastIndexOf('}');if(s<0||e<=s)return null;try{return JSON.parse(t.slice(s,e+1))}catch(_){return null}}
+async function ask(input,tier,progress){if(!sample)throw{code:'unavailable',message:aiUnavail()};const ctl=new AbortController();if(U.busy)U.busy.ctl=ctl;const opts={modelTier:tier,signal:ctl.signal,onText:p=>{if(progress)progress((p&&p.text)||'')}};try{if(typeof sample.json==='function'){const v=await sample.json(input,opts);if(typeof v==='string'){const j=parseJ(v);if(j)return j}return v}const r=await sample(input,opts);const j=parseJ(r&&r.text);if(!j)throw{message:'The response could not be read. Try again.'};return j}catch(e){if(e&&typeof e.text==='string'){const j=parseJ(e.text);if(j)return j}throw e}}
+function aiErr(e,kind){const c=e&&e.code;let m;if(c==='not_granted'){m='AI access was declined for this page. Writing and export still work.';sampleDeclined=true;sample=null}else if(c==='rate_limited')m='Too many AI requests right now. Try again in a minute.';else if(e&&(e.name==='AbortError'||c==='aborted'||c==='cancelled'))m='Stopped.';else m=e&&e.message?'The request failed: '+e.message:'The request failed. Try again.';U.aiMsg=m;U.aiKind=kind;toast(m)}
+const progFn=label=>t=>{U.prog=t?`${label} (${t.length.toLocaleString()} characters so far)`:'Thinking';const p=$('#prog');if(p)p.textContent=U.prog};
+const pickE=(v,set,d)=>set.includes(v)?v:d;
+function cleanItem(it){if(!it||typeof it!=='object')return null;const title=str(it.title).slice(0,160),detail=str(it.detail).slice(0,1600);if(!title&&!detail)return null;return{kind:pickE(it.kind,KINDS.map(k=>k[0]),'insight'),title:title||'Untitled',detail,basis:pickE(it.basis,Object.keys(BASIS),'interpretation'),confidence:pickE(it.confidence,['low','medium','high'],'low'),refs:(Array.isArray(it.refs)?it.refs:[]).filter(r=>typeof r==='string'&&/^[AT]:[A-Za-z0-9_-]+$/.test(r)&&refExists(r)).slice(0,8),alternative:str(it.alternative).slice(0,800)}}
+async function runAnalysis(){if(U.busy)return;const c=corpus();if(!c.count){toast('Answer a question or save a thought first.');return}U.busy={kind:'analysis'};U.prog='Reading your record';U.aiMsg='';render();const fb=feedbackText();
+const p=`${FRAME}\n\n${RULES}\n\nAnalyze his whole record: guided interview answers (ids A:...) and unstructured thought dumps (ids T:...). Thought dumps are raw and may be fragmented, emotional or contradictory; treat them as self-report.\n\nLook for: recurring patterns (concerns, aspirations, frustrations, behavioral tendencies, environmental influences, emotional themes); connections (academics and lifestyle, finances and decisions, environment and motivation, family expectations and ambition, relationships and wellbeing, stated values and actual behavior); contradictions and tensions (wants versus behavior, conflicting ambitions, inconsistent answers, shifted priorities, decisions he seems to be avoiding); root-cause hypotheses (environmental versus behavioral, structural constraints versus choices, symptoms of something deeper); emerging insights (overlooked observations, strengths and resources, unexplored opportunities).\n\nPrefer fewer, sharper items over many vague ones: 5 to 14 items. Every item needs at least one ref unless it concerns something missing from the record. If the record is thin, say so in the summary and keep items few.\n${fb?`\nHis feedback on earlier analyses. Respect it: do not repeat dismissed items unless new evidence appears (then say what is new), and address every correction.\n${fb}\n`:''}\nReturn only JSON in exactly this shape:\n{"summary":"2 or 3 plain sentences: the most important thing the record shows right now","items":[{"kind":"pattern|connection|contradiction|root_cause|insight","title":"under 12 words","detail":"2 to 4 sentences","basis":"fact|self-report|interpretation|hypothesis","confidence":"low|medium|high","refs":["A:a1"],"alternative":"another plausible explanation, or an empty string"}],"questions":["3 to 6 questions worth investigating next, one sentence each"],"care":"an empty string, unless the record suggests a crisis or a risk to his safety; then one or two calm sentences encouraging him to call or text 988 (US) or contact campus counseling"}\n\nTHE RECORD\n${c.text}`;
+try{const res=await ask(p,'complex',progFn('Writing the analysis'));const items=(Array.isArray(res&&res.items)?res.items:[]).map(cleanItem).filter(Boolean);if(!items.length&&!str(res&&res.summary))throw{message:'The analysis came back empty.'};const id=nid('r');put('runs',id,{id,created:now(),summary:str(res.summary).slice(0,1200),items,questions:(Array.isArray(res.questions)?res.questions:[]).map(str).filter(Boolean).slice(0,8),care:str(res.care).slice(0,600),coverage:{answers:c.na,thoughts:c.nt,omitted:c.omitted}},{quiet:true});U.run=null;toast('Analysis ready')}catch(e){aiErr(e,'analysis')}finally{U.busy=null;render()}}
+async function runSynthesis(){if(U.busy)return;const c=corpus();if(!c.count){toast('Answer a question or save a thought first.');return}U.busy={kind:'synth'};U.prog='Reading your record';U.aiMsg='';render();const prev=latestSynth(),notes=notesText(),run=latestRun();
+const p=`${FRAME}\n\n${RULES}\n\nMaintain his evolving personal synthesis: an organized dossier of his circumstances. ${prev?'Revise the previous version below using the full current record. Keep what still holds. Never silently drop or reverse an earlier conclusion: if you change or remove one, record it in "changes" with the evidence that prompted it.':'This is the first version.'}\n\nSections (keys): current = current state across academic, financial, social, emotional and personal life; history = relevant experiences and decisions that led here; roots = the most credible explanations for current challenges, separating controllable from uncontrollable; values = what appears to matter most to him; ambitions = what he wants to pursue and why; strengths = capabilities, relationships, opportunities and advantages; constraints = financial, academic, family, environmental and personal limits; unresolved = important open questions where information is missing; patterns = insights that recur across multiple entries; directions = paths worth exploring, without committing to one.\n\nWrite each section as short lines beginning with "- ". End a line with (self-reported), (interpretation) or (hypothesis) when it is not a plain fact. Cite evidence inline with ids in square brackets, such as [A:a3] or [T:tabc123]. Where the record is too thin, write "- Not enough information yet:" and name what is missing.\n${notes?`\nHis corrections and additions to earlier versions. They carry his authority: integrate them, and if the record contradicts one, say so in that section.\n${notes}\n`:''}${run?`\nLatest analysis summary, for reference only (the record is the source): ${run.summary}\n`:''}${prev?`\nPREVIOUS VERSION (version ${prev.n}, ${String(prev.created).slice(0,10)}):\n${JSON.stringify(prev.sections)}\n`:''}\nReturn only JSON in exactly this shape:\n{"sections":{"current":"","history":"","roots":"","values":"","ambitions":"","strengths":"","constraints":"","unresolved":"","patterns":"","directions":""},"changes":[{"section":"one of the section keys","what":"what changed, one sentence","why":"the new evidence or correction that prompted it","refs":["A:a1"]}]}\n${prev?'List every meaningful change and omit trivial rewording.':'For a first version, give one change per section with content, with "what" set to "First draft".'}\n\nTHE RECORD\n${c.text}`;
+try{const res=await ask(p,'complex',progFn('Writing the synthesis'));const sec={};const rs=(res&&res.sections)||{};for(const [k] of SECTIONS)sec[k]=str(rs[k]).slice(0,6000);if(!Object.values(sec).some(Boolean))throw{message:'The synthesis came back empty.'};const changes=(Array.isArray(res.changes)?res.changes:[]).map(ch=>ch&&typeof ch==='object'?{section:SECL[ch.section]?ch.section:'current',what:str(ch.what).slice(0,600),why:str(ch.why).slice(0,600),refs:(Array.isArray(ch.refs)?ch.refs:[]).filter(r=>typeof r==='string'&&/^[AT]:[A-Za-z0-9_-]+$/.test(r)&&refExists(r)).slice(0,6)}:null).filter(ch=>ch&&ch.what).slice(0,30);const id=nid('s');put('synth',id,{id,n:(prev?prev.n:0)+1,created:now(),sections:sec,changes,basis:{answers:c.na,thoughts:c.nt,run:run?run.id:null}},{quiet:true});U.synthV=null;toast('Synthesis updated')}catch(e){aiErr(e,'synth')}finally{U.busy=null;render()}}
+async function aiOption(id){if(U.busy)return;const b=OPTIONS.find(o=>o.id===id);const c=corpus();if(!c.count){toast('Answer a question or save a thought first.');return}U.busy={kind:'opt'};U.prog='Reading your record';U.aiMsg='';render();
+const p=`${FRAME}\n\n${RULES}\n\nDraft a structured assessment of ONE possible path, using only his record. This is a draft for him to edit, not a recommendation.\n\nPath: ${b.name}. ${b.desc}\n\nFor each field write 2 to 5 short lines beginning with "- ", citing ids in square brackets such as [A:b4]. Where the record lacks what is needed, write "- Unknown:" and name exactly what to find out. In "next", include administrative checks where relevant: financial aid repayment, scholarship conditions, academic standing and satisfactory academic progress, leave-of-absence policy, housing and lease obligations, and visa or enrollment-status rules if the record suggests they apply.\n\nReturn only JSON in exactly this shape:\n{"fields":{"fin":"financial implications","acad":"academic consequences","opp":"opportunity costs","long":"long-term potential","pers":"personal and emotional implications","risk":"risks and uncertainties","ev":"evidence that would make this path more or less attractive","next":"required next steps"},"unknowns":["the most important open facts for this path"]}\n\nTHE RECORD\n${c.text}`;
+try{const res=await ask(p,'complex',progFn('Drafting'));const f={};const rf=(res&&res.fields)||{};for(const [k] of FIELDS)f[k]=str(rf[k]).slice(0,3000);if(!Object.values(f).some(Boolean))throw{message:'The draft came back empty.'};setOpt(id,{ai:{fields:f,unknowns:(Array.isArray(res.unknowns)?res.unknowns:[]).map(str).filter(Boolean).slice(0,10),at:now()}},{quiet:true});toast('Draft ready')}catch(e){aiErr(e,'opt')}finally{U.busy=null;render()}}
+async function aiFollowup(){const x=curQ();if(!x)return;const a=S.answers[x.id];if(!isDone(a)||U.busy||!sample)return;const d=dimById(x.d);const ctx=qsFor(x.d).filter(z=>isDone(S.answers[z.id])).map(z=>`Q: ${z.q}\nA: ${ansText(z,S.answers[z.id])}`).join('\n\n');U.busy={kind:'follow'};render();
+try{const res=await ask(`${FRAME}\n\nYou are interviewing him about one dimension: ${d.name}. Every question already asked in this dimension, with his answers:\n\n${ctx}\n\nHe just answered:\nQ: ${x.q}\nA: ${ansText(x,a)}\n\nWrite ONE follow-up question that would surface something important he has not said yet: a root cause, a contradiction, a concrete detail, or the line between fact and interpretation. Do not repeat or rephrase a question already asked. Under 30 words. Plain, warm and direct. Never use em dashes.\nReturn only JSON: {"question":"..."}`,'default');const t=str(res&&res.question);if(!t)throw{message:'No question came back.'};const id=nid('x');put('custom',id,{id,d:x.d,after:x.id,q:t.slice(0,300),created:now()},{quiet:true});toast('Follow-up added as the next question')}catch(e){aiErr(e,'follow')}finally{U.busy=null;render()}}
+function toMD(){const L=['# Life audit export','',`Exported ${new Date().toLocaleString()}`,''];L.push('## Guided discovery','');for(const d of DIMS){const qs=qsFor(d.id).filter(x=>S.answers[x.id]&&S.answers[x.id].status&&S.answers[x.id].status!=='open');if(!qs.length)continue;L.push(`### ${d.name} (Project ${d.proj})`,'');for(const x of qs){const a=S.answers[x.id];L.push(`**${x.q}**`,'',ansText(x,a)||'(empty)','');for(const z of a.addenda||[])L.push(`> Added ${String(z.at).slice(0,10)}: ${z.text}`,'')}}
+const th=Object.values(S.thoughts).filter(Boolean).sort(byC);if(th.length){L.push('## Thoughts','');for(const t of th){L.push(`### ${fDate(t.created)}${t.tags&&t.tags.length?' · '+t.tags.join(', '):''}`,'',t.text,'');if(t.original)L.push('Original version:','',t.original.split('\n').map(l=>'> '+l).join('\n'),'')}}
+const sy=latestSynth();if(sy){L.push(`## Synthesis, version ${sy.n} (${fDate(sy.created)})`,'');for(const [k,l] of SECTIONS)L.push(`### ${l}`,'',sy.sections[k]||'(empty)','');const all=synthSorted();if(all.length){L.push('### Change history','');for(const v of all){L.push(`Version ${v.n}, ${fDate(v.created)}:`);for(const ch of v.changes||[])L.push(`- ${SECL[ch.section]||ch.section}: ${ch.what}${ch.why?' ('+ch.why+')':''}`);L.push('')}}}
+const runs=runsSorted();if(runs.length){L.push('## Analyses','');for(const r of runs){L.push(`### ${fDate(r.created)}`,'',r.summary||'','');for(const it of r.items||[])L.push(`- **${it.title}** (${it.kind.replace('_',' ')}; ${BASIS[it.basis]}; ${it.confidence} confidence): ${it.detail}${it.alternative?' Alternative: '+it.alternative:''}${it.fb&&it.fb.v?` [Your response: ${it.fb.v}${it.fb.note?', '+it.fb.note:''}]`:''}`);if((r.questions||[]).length){L.push('','Questions:');for(const x of r.questions)L.push('- '+x)}L.push('')}}
+L.push('## Decisions','');const cr=critList();if(cr.length){L.push('Criteria:');for(const c of cr)L.push('- '+c);L.push('')}for(const o of OPTIONS){const r=optRec(o.id);L.push(`### ${o.name}`,'',`Status: ${STAT[r.status]||'Exploring'}. Timing: ${URG[r.urgency||'']}. Reversibility: ${r.reversibility?r.reversibility+' of 5':'not rated'}.`,'');for(const [k,l] of FIELDS)if(str(r.fields[k]))L.push(`**${l}.** ${r.fields[k]}`,'')}
+return L.join('\n')}
+async function saveFile(name,text){if(dl){try{await dl.save({filename:name,data:text});toast('Saved '+name);return}catch(e){if(e&&e.code==='declined')return;if(e&&e.code==='rate_limited'){toast('A save prompt is already open.');return}}}
+if(OFFLINE){const type=name.endsWith('.json')?'application/json':'text/markdown';try{const f=new File([text],name,{type});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return}}catch(e){if(e&&e.name==='AbortError')return}try{const u=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return}catch(e){}}copySheet(name,text)}
+const stamp=v=>String((v&&(v.updated||v.created))||'');
+const tombs=()=>((S.meta.tombs&&S.meta.tombs.items)||{});
+function tomb(key){put('meta','tombs',{items:{...tombs(),[key]:now()},updated:now()},{quiet:true})}
+function mergeMeta(id,v,e){if(!e)return v;if(id==='tombs'){const items={...(e.items||{})};for(const [k,t] of Object.entries(v.items||{}))if(!items[k]||t>items[k])items[k]=t;return{items,updated:now()}}
+if(id==='synthNotes'){const notes={};const keys=new Set([...Object.keys(e.notes||{}),...Object.keys(v.notes||{})]);for(const k of keys){const seen=new Set(),arr=[];for(const x of [...((e.notes||{})[k]||[]),...((v.notes||{})[k]||[])]){const sig=x.at+'|'+x.text;if(!seen.has(sig)){seen.add(sig);arr.push(x)}}notes[k]=arr.sort((a,b)=>String(a.at).localeCompare(String(b.at)))}return{notes,updated:now()}}
+if(id==='criteria'){const tb={...tombs(),...((S.meta.tombs&&S.meta.tombs.items)||{})};const map=new Map();for(const c of [...(e.items||[]),...(v.items||[])])if(c&&c.id&&!tb['crit/'+c.id])map.set(c.id,c);return{items:[...map.values()],updated:now()}}
+return stamp(v)>stamp(e)?v:e}
+async function mergeData(data){let n=0;const inT=(data&&data.meta&&data.meta.tombs&&data.meta.tombs.items)||{};
+if(data&&data.meta&&data.meta.tombs){const m=mergeMeta('tombs',data.meta.tombs,S.meta.tombs);put('meta','tombs',m,{quiet:true})}
+const tb=tombs();
+for(const c of COLS){const o=(data&&data[c])||{};for(const id of Object.keys(o)){if(!/^[A-Za-z0-9_.~:@+-]{1,120}$/.test(id)||id==='.'||id==='..'||(c==='meta'&&id==='tombs'))continue;const v=o[id];if(!v||typeof v!=='object'||Array.isArray(v))continue;if(tb[c+'/'+id]&&tb[c+'/'+id]>=stamp(v))continue;const e=S[c][id];let next;if(c==='meta')next=mergeMeta(id,v,e);else next=!e||stamp(v)>stamp(e)?v:null;if(!next||JSON.stringify(next)===JSON.stringify(e))continue;put(c,id,next,{quiet:true});n++;if(mode==='cloud')await sleep(120)}}
+for(const [k,t] of Object.entries(inT)){const i=k.indexOf('/');const c=k.slice(0,i),id=k.slice(i+1);if(!COLS.includes(c))continue;const e=S[c][id];if(e&&stamp(e)<=t){put(c,id,undefined,{quiet:true});n++;if(mode==='cloud')await sleep(120)}}
+render();return n}
+function syncPacket(){return JSON.stringify({app:'life-audit',version:1,exported:now(),edition:EDITION,data:S})}
+function openSync(){openSheet(`<h2 class="h2" style="margin-top:0">Sync ${OFFLINE?'with the main app':'with the offline edition'}</h2>
+<p class="muted">${OFFLINE?'Copy from one, paste into the other. Do it both ways: before a flight, paste from the main app here; after landing, copy from here into the main app. Newer edits win, and nothing is lost on either side.':'The offline edition keeps working with no connection, for flights and dead zones. Copy from one, paste into the other. Newer edits win, and nothing is lost on either side.'}</p>
+<h3 class="h3">1. Copy from this ${OFFLINE?'phone':'app'}</h3><div class="row" style="margin-top:0"><button class="btn pri" data-act="synccopy">Copy sync data</button>${OFFLINE?'<button class="btn" data-act="exportjson">Save as file</button>':''}</div>
+<h3 class="h3">2. Paste from the ${OFFLINE?'main app':'offline edition'}</h3><textarea id="syncin" rows="4" placeholder="Paste sync data here" aria-label="Paste sync data"></textarea><div class="row"><button class="btn" data-act="syncmerge" ${ready?'':'disabled'}>Merge</button></div>
+<p class="mini" style="margin-top:14px">${OFFLINE?`Main app: <a href="${MAIN_URL}">${esc(MAIN_URL)}</a>`:`Offline edition: <a href="${OFFLINE_URL}">${esc(OFFLINE_URL)}</a>. Open it in Safari, tap Share, then Add to Home Screen. Open it once while online so it saves itself for offline use.`}</p>
+<div class="row end"><button class="btn ghost" data-act="closesheet">Close</button></div>`)}
+const ACT={
+privacy:()=>openPrivacy(),capture:()=>openCapture(),closesheet:()=>closeSheet(),saveDraft:el=>saveDraft(el),mic:el=>toggleMic(el.dataset.target),
+goq:el=>{U.flow=el.dataset.d;U.i=+el.dataset.i||0;U.addOpen=false;go('discover')},
+opendim:el=>{U.flow=el.dataset.d;U.i=firstOpenIdx(el.dataset.d);U.addOpen=false;go('discover')},
+dims:()=>{U.flow=null;render();top()},review:()=>{U.i=qsFor(U.flow).length;render();top()},
+prev:()=>{if(U.i>0)U.i--;U.addOpen=false;render();top()},next:()=>{flushAll();U.i++;U.addOpen=false;render();top()},
+unknown:()=>{const x=curQ();if(x)setAnswer(x.id,{status:'unknown'});U.i++;U.addOpen=false;render();top()},
+skip:()=>{const x=curQ();if(x){const a=S.answers[x.id];if(!isDone(a))setAnswer(x.id,{status:'skipped'})}U.i++;U.addOpen=false;render();top()},
+pick:el=>pick(el),jump:el=>{U.i=+el.dataset.i||0;render();top()},nextdim:el=>{U.flow=el.dataset.d;U.i=firstOpenIdx(el.dataset.d);render();top()},
+addmore:()=>{U.addOpen=!U.addOpen;render();if(U.addOpen)setTimeout(()=>{const t=$('#addtxt');if(t)t.focus()},40)},
+saveadd:()=>{const x=curQ();const t=$('#addtxt');if(!x||!t||!str(t.value)){toast('Write the addition first.');return}const a=S.answers[x.id]||{};setAnswer(x.id,{addenda:[...(a.addenda||[]),{at:now(),text:t.value.trim()}],status:isDone(a)?a.status:'answered'});U.addOpen=false;render()},
+followup:()=>aiFollowup(),rmcustom:el=>{put('custom',el.dataset.id,undefined,{quiet:true});tomb('custom/'+el.dataset.id);render()},
+addtag:el=>{const d=getDraft();const cur=parseTags(d.tags);if(!cur.includes(el.dataset.t))cur.push(el.dataset.t);const s=cur.join(', ');setDraft({...d,tags:s});for(const i of $$('[data-in=drafttags]'))i.value=s},
+tagf:el=>{U.tag=U.tag===el.dataset.t?null:el.dataset.t;render()},
+editT:el=>{U.editT=el.dataset.id;U.delT=null;renderTList();const t=$('#te');if(t){autosize(t);t.focus()}},cancelT:()=>{U.editT=null;renderTList()},
+saveT:el=>{const id=el.dataset.id,t=S.thoughts[id],te=$('#te');if(!t||!te)return;if(!str(te.value)){toast('A thought cannot be empty. Delete it instead.');return}const n={...t,text:te.value.replace(/\s+$/,''),tags:parseTags(($('#teg')||{}).value),updated:now()};if(n.text!==t.text&&!t.original)n.original=t.text;U.editT=null;put('thoughts',id,n,{quiet:true});render()},
+delT:el=>{U.delT=el.dataset.id;renderTList()},delNo:()=>{U.delT=null;renderTList()},delYes:el=>{U.delT=null;put('thoughts',el.dataset.id,undefined,{quiet:true});tomb('thoughts/'+el.dataset.id);render();toast('Deleted')},
+more:el=>{const e=el.closest('.entry');const t=e&&e.querySelector('.txt');if(t)t.classList.remove('clamp');el.remove()},
+analyze:()=>runAnalysis(),synth:()=>runSynthesis(),aiopt:()=>aiOption(U.opt),cancelAI:()=>{if(U.busy&&U.busy.ctl)U.busy.ctl.abort()},
+fb:el=>setFb(el.dataset.run,+el.dataset.i,el.dataset.v),viewrun:el=>{U.run=el.dataset.id;render();top()},
+qthought:el=>{const d=getDraft();setDraft({...d,text:(str(d.text)?d.text.replace(/\s+$/,'')+'\n\n':'')+'Q: '+el.dataset.q+'\n\n'});openCapture()},
+viewsyn:el=>{U.synthV=el.dataset.id||null;render();top()},snote:el=>{U.snoteOpen=el.dataset.s||null;render();if(U.snoteOpen)setTimeout(()=>{const t=$('#sn');if(t)t.focus()},40)},
+savenote:el=>{const t=$('#sn');if(!t||!str(t.value)){toast('Write the note first.');return}const k=el.dataset.s;const m=S.meta.synthNotes||{notes:{}};const notes={...(m.notes||{})};notes[k]=[...(notes[k]||[]),{at:now(),text:t.value.trim()}];U.snoteOpen=null;put('meta','synthNotes',{notes,updated:now()});toast('Note saved. The next update will account for it.')},
+ref:el=>openRef(el.dataset.ref),openq:el=>{const x=findQ(el.dataset.q);closeSheet();if(!x)return;U.flow=x.d;U.i=Math.max(0,qsFor(x.d).findIndex(z=>z.id===x.id));go('discover')},
+openopt:el=>{U.opt=el.dataset.id;go('decide');top()},optback:()=>{U.opt=null;render();top()},
+urg:el=>setOpt(U.opt,{urgency:el.dataset.v}),ostat:el=>setOpt(U.opt,{status:el.dataset.v}),rev:el=>{const v=+el.dataset.v;setOpt(U.opt,{reversibility:optRec(U.opt).reversibility===v?0:v})},
+usedraft:el=>{const k=el.dataset.f,o=optRec(U.opt);const dft=o.ai&&o.ai.fields&&o.ai.fields[k];if(!dft)return;const cur=str(o.fields[k]);setOpt(U.opt,{fields:{...o.fields,[k]:cur?cur+'\n\n'+dft:dft}})},
+cmp:el=>{const id=el.dataset.id;const i=U.cmp.indexOf(id);if(i>=0)U.cmp.splice(i,1);else{if(U.cmp.length>=3){toast('Compare up to three paths at a time.');return}U.cmp.push(id)}render();if(U.cmp.length>=2){const c=$('#cmp');if(c&&i<0)c.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})}},
+cmpclear:()=>{U.cmp=[];render()},
+addcrit:()=>{const t=$('#critnew');if(!t||!str(t.value))return;const m=S.meta.criteria||{items:[]};put('meta','criteria',{items:[...(m.items||[]),{id:nid('c'),text:t.value.trim().slice(0,200)}],updated:now()})},
+delcrit:el=>{tomb('crit/'+el.dataset.id);const m=S.meta.criteria||{items:[]};put('meta','criteria',{items:(m.items||[]).filter(c=>c.id!==el.dataset.id),updated:now()})},
+exportmd:()=>saveFile(`life-audit-${new Date().toISOString().slice(0,10)}.md`,toMD()),
+exportjson:()=>saveFile(`life-audit-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify({app:'life-audit',version:1,exported:now(),data:S},null,2)),
+importjson:()=>$('#importfile').click(),
+copy:()=>{const t=$('#cpy');if(!t)return;const done=()=>toast('Copied');try{navigator.clipboard.writeText(t.value).then(done,()=>{t.select();toast('Select all and copy manually.')})}catch(e){t.select();toast('Select all and copy manually.')}},
+syncsheet:()=>openSync(),
+synccopy:()=>{const txt=syncPacket();const ok=()=>{markSync();toast('Copied. Paste it into the '+(OFFLINE?'main app.':'offline edition.'))};try{navigator.clipboard.writeText(txt).then(ok,()=>copySheet('Sync data',txt))}catch(e){copySheet('Sync data',txt)}},
+syncmerge:async()=>{const t=$('#syncin');if(!t||!str(t.value)){toast('Paste the sync data first.');return}let j;try{j=JSON.parse(t.value)}catch(e){j=null}if(!j||j.app!=='life-audit'||!j.data){toast('That is not Life audit sync data.');return}closeSheet();const n=await mergeData(j.data);markSync();toast(n?`Merged ${n} change${n>1?'s':''}`:'Already up to date')},
+migrate:async()=>{const lc=localCache;if(!lc)return;localCache=null;render();const n=await mergeData(lc);try{localStorage.removeItem(LKEY)}catch(e){}toast(`Added ${n} entries`)}
+};
+document.addEventListener('click',e=>{if(e.target===sheetEl){closeSheet();return}const na=e.target.closest('nav.tabs a');if(na){const v=na.getAttribute('href').slice(1);if(v==='discover')U.flow=null;if(v==='decide')U.opt=null;if(v==='insights')U.run=null;if(v==='dossier')U.synthV=null;if(view()===v){e.preventDefault();render();top()}return}const el=e.target.closest('[data-act]');if(!el||el.disabled)return;const f=ACT[el.dataset.act];if(!f)return;if(el.tagName!=='A'||el.dataset.act!=='closesheet')e.preventDefault();f(el,e)});
+const IN={
+focus:el=>put('meta','home',{...(S.meta.home||{}),focus:el.value,updated:now()},{debounce:800,quiet:true}),
+draft:el=>{setDraft({...getDraft(),text:el.value});autosize(el)},drafttags:el=>setDraft({...getDraft(),tags:el.value}),
+ans:el=>{const x=curQ();if(!x)return;let v=el.value;if(x.t==='number'){if(v===''){v=''}else{v=Number(v);if(!Number.isFinite(v))return}}const empty=v===''||(typeof v==='string'&&!v.trim());const a=S.answers[x.id];setAnswer(x.id,{value:v,status:empty?(a&&a.status==='unknown'?'unknown':'open'):'answered'},700)},
+note:el=>{const x=curQ();if(x)setAnswer(x.id,{note:el.value},700)},
+search:el=>{U.search=el.value;renderTList()},
+fbnote:el=>{const r=S.runs[el.dataset.run];const i=+el.dataset.i;if(!r||!r.items||!r.items[i])return;const n=clone(r);n.items[i].fb={...(n.items[i].fb||{}),note:el.value};n.updated=now();put('runs',r.id,n,{debounce:800,quiet:true})},
+optf:el=>{const o=optRec(U.opt);setOpt(U.opt,{fields:{...o.fields,[el.dataset.f]:el.value}},{debounce:700,quiet:true})}};
+document.addEventListener('input',e=>{const k=e.target.dataset&&e.target.dataset.in;if(k&&IN[k])IN[k](e.target)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!sheetEl.hidden){closeSheet();return}if(e.key==='Enter'&&e.target.id==='critnew'){e.preventDefault();ACT.addcrit()}if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)&&e.target.dataset&&e.target.dataset.in==='draft'){e.preventDefault();saveDraft(e.target.id==='sw'?{dataset:{close:'1'}}:null)}});
+$('#importfile').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;try{const j=JSON.parse(await f.text());if(!j||j.app!=='life-audit'||!j.data)throw 0;closeSheet();const n=await mergeData(j.data);toast(`Imported ${n} entries`)}catch(_){toast('That file is not a Life audit export.')}});
+window.addEventListener('hashchange',()=>{render();top()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushAll()});
+window.addEventListener('pagehide',flushAll);
+
+/* ---------- dictation ---------- */
+function wireDict(){try{dict.onPartial(p=>{const el=document.getElementById('partial-'+dictTarget);if(el)el.textContent=(p&&p.text)||''});dict.onFinal(p=>{const text=p&&p.text;const pe=document.getElementById('partial-'+dictTarget);if(pe)pe.textContent='';const el=document.getElementById(dictTarget);if(!el||!text)return;const sep=el.value&&!/\s$/.test(el.value)?' ':'';el.value+=sep+text;el.dispatchEvent(new Event('input',{bubbles:true}))});dict.onState(s=>{listening=!!s&&s.state==='listening';if(!listening){const pe=document.getElementById('partial-'+dictTarget);if(pe)pe.textContent=''}updMics()})}catch(e){dict=null}}
+function updMics(){for(const b of $$('[data-act=mic]')){const on=listening&&b.dataset.target===dictTarget;b.setAttribute('aria-pressed',String(on));const s=b.querySelector('span');if(s)s.textContent=on?'Stop':'Speak'}}
+function toggleMic(t){if(!dict)return;if(listening){dict.stop().catch(()=>{});return}dictTarget=t;let pr;try{pr=dict.start()}catch(e){toast('Dictation is unavailable right now.');return}if(pr&&pr.catch)pr.catch(e=>{if(e&&e.code==='not_granted'){dict=null;toast('Microphone declined. Typing still works.');render()}else if(!(e&&e.code==='dismissed'))toast('Dictation is unavailable right now.')})}
+
+/* ---------- boot ---------- */
+try{const H=window.claude&&window.claude.hot;if(H&&typeof H.snapshot==='function')H.snapshot(()=>({flow:U.flow,i:U.i,opt:U.opt}))}catch(e){}
+function start(h){if(h&&typeof h==='object'){if(h.flow&&dimById(h.flow)){U.flow=h.flow;U.i=+h.i||0}if(h.opt&&OPTIONS.some(o=>o.id===h.opt))U.opt=h.opt}render();connect()}
+const H=window.claude&&window.claude.hot;if(H&&typeof H.ready==='function')H.ready(start);else start((H&&H.data)||{});
+}
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}</script>
+</body>
+</html>
